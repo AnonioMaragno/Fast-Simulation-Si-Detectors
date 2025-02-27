@@ -3,6 +3,7 @@
 
 #include "TObject.h"
 #include "pHit.h"
+#include <Riostream.h>
 #include "TClonesArray.h"
 #include "pPoint.h"
 
@@ -28,6 +29,16 @@ class pEvent : public TObject {
 		//funzione di trasporto
 		static pHit Trasporto(pPoint pIniz, double Theta, double Phi);
 
+		
+		//funzione di cleaning
+		static void disallocateMemory(){
+			delete fHitsL1;
+			fHitsL1 = nullptr;
+			delete fHitsL2;
+			fHitsL2 = nullptr;
+		};
+
+
 
 
 	private:
@@ -41,10 +52,12 @@ class pEvent : public TObject {
 		static int fCounter;//per contare il numero dell'evento
 		int fM;// Molteplicità di particelle
 		pPoint fVertex;// Puntatore al vertice
-		TClonesArray *fHits;// Array di hits per questo evento; 
+		static TClonesArray *fHitsL1;// Array di hits per questo evento su layer 1;
+		static TClonesArray *fHitsL2;// Array di hits per questo evento su layer 2; 
 		
 
-
+		//funzioni ausiliarie
+		void findCosDirection(double *cosDir, double th, double phi);//trova coseni direttori		
 
 
 
