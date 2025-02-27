@@ -2,11 +2,9 @@
 #define PEVENT_H
 
 #include "TObject.h"
-#include "pRandom.h"
 
-pRandom *myRandom = new pRandom();
 
-class pEvent : public TObject() {
+class pEvent : public TObject {
 
 	public:
 		pEvent();
