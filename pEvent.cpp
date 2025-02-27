@@ -1,20 +1,26 @@
 #include "pEvent.h"
 
-// Default Constructor
-pEvent::pEvent(): TObject(), fX(), fY(), fZ(), fTheta(), fVertex(NULL)    {
+// contatore per vedere il numero dell'evento (per debug)
+int pEvent::fCounter = 0;
 
+
+// Default Constructor
+// metto molteplicità a zero, vertice a (0,0,0) e creo un array vuoto di pHits
+pEvent::pEvent(): TObject(),
+fM(0),
+fVertex(pPoint()),
+fHits(NULL){
+    fCounter += 1;
+    fHits = new TClonesArray("pHit", 100);
 }
 
 // Standard Constructor
-pEvent::pEvent(double x, double y, double z): TObject(),
-fX(x),
-fY(y),
-fZ(z),
-fTheta(theta),
-fPhi(phi),
-fId(),
-fVertex(NULL)   {
-
+// metto molteplicità a zero, vertice a (0,0,0) e creo un array vuoto di pHits
+pEvent::pEvent(pPoint *vert, int mult): TObject(),
+fM(mult),
+fVertex(*vert),
+fHits(NULL){
+    fCounter += 1;
+    fHits = new TClonesArray("pHit", 100);
 }
 
-void pEvent::SetMultiplicity()
