@@ -2,30 +2,46 @@
 #define PEVENT_H
 
 #include "TObject.h"
+#include "pHit.h"
+#include "TClonesArray.h"
+#include "pPoint.h"
+
+using namespace std;
 
 
 class pEvent : public TObject {
 
 	public:
-		pEvent();
-		pEvent(double x, double y, double z, double theta, double phi);
-
-		virtual ~pEvent();
+		pEvent();//default constructor
+		pEvent(pPoint *vert, int mult);//standard constructor
+		virtual ~pEvent();//destructor
 		
-		double SetMultiplicity();
+		//setter
+		void SetMultiplicity(int mult) { fM = mult;};
+		void SetVertex(pPoint punto) { fVertex = punto;};
+
+		//getter
+		int GetMultiplicity() const { return fM; };
+		pPoint GetVertex() const { return fVertex; };
+		double GetZVertex() const { return fVertex.GetZ(); };
+
+		//funzione di trasporto
+		static pHit Trasporto(pPoint pIniz, double Theta, double Phi);
 
 
 
 	private:
-    
-		double fX;           // Coordinata cartesiana x del vertice
-		double fY;           //    ''          ''     y     ''
-		double fZ;           //    ''          ''     z     ''
-//		double fTheta;       // Angolo polare theta nel SRL
-//		double fPhi;         // Angolo azimutale nel SRL
-		double fId;          // Numero dell'evento
-		double fM;           // Molteplicità di particelle
-		double *fVertex;     // Array contente le informazioni riguardanti il vertice
+		// ASSIGNEMENT OPERATOR E COPY DICHIARATI PRIVATI COSÌ NON LI COSTRUISCE IL COMPILER
+		// NON VOGLIO COPIE DEL MIO EVENTO
+		void operator=(const pEvent& source){};//assignment operator
+		pEvent(const pEvent& source) {};//copy constructor
+
+
+		// data members
+		static int fCounter;//per contare il numero dell'evento
+		int fM;// Molteplicità di particelle
+		pPoint fVertex;// Puntatore al vertice
+		TClonesArray *fHits;// Array di hits per questo evento; 
 		
 
 
