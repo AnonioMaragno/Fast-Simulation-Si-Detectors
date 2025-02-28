@@ -11,6 +11,8 @@
 const int kNoEvents = 10; //Numero di eventi da simulare
 const bool kFlagMS = false; //Flag per vedere se simulare o no il Multiple scattering 
 
+void generaVertice(pPoint* v );
+void generaDirezione(TH1F* etaDist, double& Th, double& Ph);
 void findCosDirection(double *cosDir, double th, double phi);
 void MultipleScattering(double* cd);
 
@@ -20,36 +22,28 @@ void Simulation() {
     TFile *f = new TFile("kinem.root");
     TH1F *eta = (TH1F*)f->Get("heta");
     TH1F *mul = (TH1F*)f->Get("hmul");
-/*
+
     // Creazione di un tree
-    TFile hfile("htree.root", "RECREATE");
-    TTree *tree = new TTree("T","TTree con 3 branches");
+    TFile outfile("treeSimulated.root", "RECREATE");
+    TTree *tree = new TTree("T","TTree con 4 branches");
 
-    // Dichiarazione dei 2 branch del TTree
-    tree->Branch("VertMult",&point.X,"X/D:Y:Z:mult/I");
-    tree->Branch("Hits",&ptrhits);
+    TClonesArray* ptrHitsL1 = pEvent::GetPtrHitsL1();
+    TClonesArray* ptrHitsL2 = pEvent::GetPtrHitsL2();
+    pPoint* vertex;//qui dichiaro e poi instanzio memoria su vertex nella funzione generaVertice
+    double zVert;//per salvare solo z del vertice
+    int multi;//molteplicità
 
-*/
-    // Generazione del vertice
-    double xVert = gRandom->Gaus(0,0.1);
-    double yVert = gRandom->Gaus(0,0.1);
-    double zVert = gRandom->Gaus(0,53);
-
-    // Generazione molteplicità
-    double mult = mul->GetRandom();
-
-    // Generazione theta e phi
-    double phi = 2*TMath::ACos(-1)*gRandom->Rndm();
-    double pseudor = eta->GetRandom();
-    double theta = 2*TMath::ATan(exp(-pseudor));
+    
+    // Dichiarazione dei 4 branch del TTree
+    tree->Branch("zVertex", &zVert);
+    tree->Branch("Mult",&multi);
+    tree->Branch("HitsL1",&ptrHitsL1);
+    tree->Branch("HitsL2",&ptrHitsL2);
 
 
-
-
-
-    double Theta, Phi;
-    pPoint vertex(3, 4, 5);
-    int multi = 10;
+    double theta, phi; //direzione iniziale
+    
+    //puntatori ausiliari    
     pPoint* tempPoint;
     pPoint* ptrPoint;
 
@@ -59,13 +53,13 @@ void Simulation() {
     Layer layers[3] = {Layer::BP, Layer::L1, Layer::L2};//array che serve per simulare cronologicamente dove incide la particella
 
     for (int k=0; k<kNoEvents; k++){
-        // crei pPoint del vertice
-        // genera molteplicità
-        pEvent* ev = new pEvent(&vertex, multi);
-        tempPoint = &pPoint(vertex);
+        generaVertice(vertex);//generazione vertice
+        multi = (int) mul->GetRandom();//genera molteplicità
+        pEvent* ev = new pEvent(vertex, multi);
         for (int index = 0; index<multi; index++){
-            //generi theta e phi
-            findCosDirection(cd, Theta, Phi);
+            tempPoint = &pPoint(*vertex);//metto sullo stack perché tanto la copia viene cancellata alla fine dell'iterazione
+            generaDirezione(eta, theta, phi);//generi theta e phi
+            findCosDirection(cd, theta, phi);//trova coseni direttori
             for (const auto& l : layers){
                 ptrPoint = ev->Trasporto(tempPoint, cd, l, index);//Qui si può ridurre tutto a tempPoint ossia riaggiornarlo stesso qui dentro
                 if (ptrPoint == nullptr){
@@ -80,17 +74,37 @@ void Simulation() {
             }
 
         }
-        
+        zVert = ev->GetZVertex();
+        tree -> Fill();
+        delete vertex;
+        vertex = nullptr;
         delete ev;
     }
 
 
 
-
+    outfile.Write();
+    outfile.Close();
 
 
 
 }
+
+void generaVertice(pPoint* v ){
+    // Generazione del vertice
+    double xVert = gRandom->Gaus(0,0.1);
+    double yVert = gRandom->Gaus(0,0.1);
+    double zVert = gRandom->Gaus(0,53);
+    v = new pPoint(xVert, yVert, zVert);
+};
+
+void generaDirezione(TH1F* etaDist, double& Th, double& Ph){
+    // Generazione theta e phi
+    double phi = 2*TMath::ACos(-1)*gRandom->Rndm();
+    double pseudor = etaDist->GetRandom();
+    double theta = 2*TMath::ATan(exp(-pseudor));
+}
+
 
 void findCosDirection(double *cosDir, double th, double phi)
 {
@@ -100,59 +114,9 @@ void findCosDirection(double *cosDir, double th, double phi)
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void MultipleScattering(double *cd){
     
-    double mr[3][3];
+    static double mr[3][3];
     double sintheta = sqrt(1 - cd[2]*cd[2]);
     mr[0][0] = -cd[1]/sintheta;
     mr[1][0] = cd[0]/sintheta;

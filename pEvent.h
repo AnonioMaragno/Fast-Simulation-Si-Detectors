@@ -19,12 +19,15 @@ class pEvent : public TObject {
 		
 		//setter
 		void SetMultiplicity(int mult) { fM = mult;};
-		void SetVertex(pPoint punto) { fVertex = punto;};
+		void SetVertex(pPoint* punto) { fVertex = punto;};
 
 		//getter
 		int GetMultiplicity() const { return fM; };
-		pPoint GetVertex() const { return fVertex; };
-		double GetZVertex() const { return fVertex.GetZ(); };
+		pPoint* GetVertex() const { return fVertex; };
+		double GetZVertex() const { return fVertex->GetZ(); };
+		
+		static TClonesArray* GetPtrHitsL1() { return fHitsL1; };
+		static TClonesArray* GetPtrHitsL2() { return fHitsL2; };
 
 		//funzione di trasporto
 		static pPoint* Trasporto(pPoint* pIniz, double* c, Layer lay, int index);
@@ -42,12 +45,6 @@ class pEvent : public TObject {
 
 
 	private:
-		// ASSIGNEMENT OPERATOR E COPY DICHIARATI PRIVATI COSÌ NON LI COSTRUISCE IL COMPILER
-		// NON VOGLIO COPIE DEL MIO EVENTO
-		void operator=(const pEvent& source){};//assignment operator
-		pEvent(const pEvent& source) {};//copy constructor
-
-
 		// data members
 		
 		//contatori
@@ -56,16 +53,20 @@ class pEvent : public TObject {
 		static int fRegisteredL2;//per contare gli eventi registrati su L2
 
 		int fM;// Molteplicità di particelle
-		pPoint fVertex;// Puntatore al vertice
+		pPoint* fVertex;// Puntatore al vertice
+
 		static TClonesArray *fHitsBP;// Array di hits per questo evento su beam pipe (debug);
 		static TClonesArray *fHitsL1;// Array di hits per questo evento su layer 1;
-		static TClonesArray *fHitsL2;// Array di hits per questo evento su layer 2; 
+		static TClonesArray *fHitsL2;// Array di hits per questo evento su layer 2;
+	
+
+		// ASSIGNEMENT OPERATOR E COPY DICHIARATI PRIVATI COSÌ NON LI COSTRUISCE IL COMPILER
+		// NON VOGLIO COPIE DEL MIO EVENTO
+		void operator=(const pEvent& source){};//assignment operator
+		pEvent(const pEvent& source) {};//copy constructor
+
+
 		
-
-		//funzioni ausiliarie
-		static void findCosDirection(double *cosDir, double th, double phi);//trova coseni direttori		
-
-
 
 	ClassDef(pEvent,1);
 };

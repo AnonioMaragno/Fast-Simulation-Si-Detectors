@@ -20,16 +20,16 @@ TClonesArray* pEvent::fHitsL2 = new TClonesArray("pHit", 50);
 // Default Constructor
 // metto molteplicità a zero, vertice a (0,0,0) 
 pEvent::pEvent(): TObject(),
-fM(0),
-fVertex(pPoint()){
+fM(0){
+    SetVertex(&pPoint());
     fCounter += 1;
 }
 
 // Standard Constructor
 // metto molteplicità a mult, vertice a (x,y,z) 
 pEvent::pEvent(pPoint *vert, int mult): TObject(),
-fM(mult),
-fVertex(*vert){
+fM(mult){
+    SetVertex(vert);
     fCounter += 1;
 }
 
@@ -38,6 +38,9 @@ pEvent::~pEvent()
 {
     // debug
     cout << "Cancello l'evento numero: " << fCounter << endl;
+
+    //libera memoria
+    fVertex = nullptr; //si occupa già il programma di simulazione liberare la memoria heap
     fHitsL1->Clear();
     fHitsL2->Clear();
 }
@@ -99,13 +102,4 @@ pPoint* pEvent::Trasporto(pPoint* pIniz, double* c, Layer lay, int index)
     }
 
     return ptrNewPoint;
-}
-
-
-//da eliminare se tutto funziona
-void pEvent::findCosDirection(double *cosDir, double th, double phi)
-{
-    cosDir[0] = sin(th) * cos(phi);
-    cosDir[1] = sin(th) * sin(phi);
-    cosDir[0] = cos(th);
 }
