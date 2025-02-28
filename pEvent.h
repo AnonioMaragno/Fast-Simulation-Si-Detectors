@@ -3,6 +3,7 @@
 
 #include "TObject.h"
 #include "pHit.h"
+#include <Riostream.h>
 #include "TClonesArray.h"
 #include "pPoint.h"
 
@@ -26,7 +27,17 @@ class pEvent : public TObject {
 		double GetZVertex() const { return fVertex.GetZ(); };
 
 		//funzione di trasporto
-		static pHit Trasporto(pPoint pIniz, double Theta, double Phi);
+		static pPoint* Trasporto(pPoint pIniz, double Theta, double Phi, Layer lay, int index);
+
+		
+		//funzione di cleaning
+		static void disallocateMemory(){
+			delete fHitsL1;
+			fHitsL1 = nullptr;
+			delete fHitsL2;
+			fHitsL2 = nullptr;
+		};
+
 
 
 
@@ -38,13 +49,21 @@ class pEvent : public TObject {
 
 
 		// data members
+		
+		//contatori
 		static int fCounter;//per contare il numero dell'evento
+		static int fRegisteredL1;//per contare gli eventi registrati su L1
+		static int fRegisteredL2;//per contare gli eventi registrati su L2
+
 		int fM;// Molteplicità di particelle
 		pPoint fVertex;// Puntatore al vertice
-		TClonesArray *fHits;// Array di hits per questo evento; 
+		static TClonesArray *fHitsBP;// Array di hits per questo evento su beam pipe (debug);
+		static TClonesArray *fHitsL1;// Array di hits per questo evento su layer 1;
+		static TClonesArray *fHitsL2;// Array di hits per questo evento su layer 2; 
 		
 
-
+		//funzioni ausiliarie
+		static void findCosDirection(double *cosDir, double th, double phi);//trova coseni direttori		
 
 
 
