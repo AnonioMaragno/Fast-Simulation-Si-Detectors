@@ -1,9 +1,17 @@
 #include "pEvent.h"
 
+ClassImp(pEvent)
+
 // contatore per vedere il numero dell'evento (per debug)
 int pEvent::fCounter = 0;
 
+//contatori di registrazione eventi
+int pEvent::fRegisteredL1 = 0;
+int pEvent::fRegisteredL2 = 0;
+
+
 //array che conterranno le hit
+TClonesArray* pEvent::fHitsBP = new TClonesArray("pHit", 50);
 TClonesArray* pEvent::fHitsL1 = new TClonesArray("pHit", 50);
 TClonesArray* pEvent::fHitsL2 = new TClonesArray("pHit", 50);
 
@@ -37,17 +45,65 @@ pEvent::~pEvent()
 
 
 // Trasporto della particella da un punto iniziale ad un layer
-pHit pEvent::Trasporto(pPoint pIniz, double Theta, double Phi)
+pPoint* pEvent::Trasporto(pPoint pIniz, double Theta, double Phi, Layer lay, int index)
 {
-    static double *cosDir[3]; //array che conterrà i coseni direttori
-    findCosDirection(cosDir, th, phi);//trova coseni direttori
-    static double t, x0, y0, z0, delta;
+    static double c[3]; //array che conterrà i coseni direttori
+    findCosDirection(c, Theta, Phi);//trova coseni direttori
+    static double t, x0, y0, z0, x, y, z, R, delta, b, sqs;//delta, b e sqs servono come variabili ausiliare per snellire la scrittura
     x0 = pIniz.GetX();
     y0 = pIniz.GetY();
     z0 = pIniz.GetZ();
 
-    t = 
+    static TClonesArray* ptrhits = nullptr;
+    static pPoint* ptrNewPoint;
+    static int* ptrRegCounter;
 
+    if (lay == Layer::L1){
+        R = 40;
+        ptrhits = fHitsL1;
+        ptrRegCounter = &fRegisteredL1;
+    }
+    else if (lay == Layer::L2){
+        R = 70;
+        ptrhits = fHitsL2;
+        ptrRegCounter = &fRegisteredL2;
+    }
+    else{
+        R = 30;
+        ptrhits = fHitsBP;
+    } 
 
-    return ;
+    // calcolo di t
+    b = x0*c[0] + y0*c[1];
+    sqs = c[0]*c[0] + c[1]*c[1];
+    delta = b*b - sqs * ( x0*x0 + y0*y0 - R*R );
+    t = (-b+sqrt(delta))/sqs;
+
+    //calcolo di x, y, z finali
+    x = x0 + c[0]*t;
+    y = y0 + c[1]*t;
+    z = z0 + c[2]*t;
+
+    //creo la hit se rispetto la condizione di essere nel rivelatore
+    if ( lay == Layer::BP ){
+        new (ptrhits -> At(index)) pHit(x,y,z,lay,index,fCounter);
+        *ptrNewPoint = pPoint(x,y,z);
+    }
+    else if (z<135 && z>-135){
+        *ptrRegCounter += 1;
+        new (ptrhits -> At(*ptrRegCounter)) pHit(x,y,z,lay,index,fCounter);
+        *ptrNewPoint = pPoint(x,y,z);
+    }
+    else{
+        ptrNewPoint = nullptr;
+    }
+
+    return ptrNewPoint;
+}
+
+void pEvent::findCosDirection(double *cosDir, double th, double phi)
+{
+    cosDir[0] = sin(th) * cos(phi);
+    cosDir[1] = sin(th) * sin(phi);
+    cosDir[0] = cos(th);
 }

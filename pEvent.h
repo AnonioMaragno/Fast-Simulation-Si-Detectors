@@ -27,7 +27,7 @@ class pEvent : public TObject {
 		double GetZVertex() const { return fVertex.GetZ(); };
 
 		//funzione di trasporto
-		static pHit Trasporto(pPoint pIniz, double Theta, double Phi);
+		static pPoint* Trasporto(pPoint pIniz, double Theta, double Phi, Layer lay, int index);
 
 		
 		//funzione di cleaning
@@ -49,15 +49,21 @@ class pEvent : public TObject {
 
 
 		// data members
+		
+		//contatori
 		static int fCounter;//per contare il numero dell'evento
+		static int fRegisteredL1;//per contare gli eventi registrati su L1
+		static int fRegisteredL2;//per contare gli eventi registrati su L2
+
 		int fM;// Molteplicità di particelle
 		pPoint fVertex;// Puntatore al vertice
+		static TClonesArray *fHitsBP;// Array di hits per questo evento su beam pipe (debug);
 		static TClonesArray *fHitsL1;// Array di hits per questo evento su layer 1;
 		static TClonesArray *fHitsL2;// Array di hits per questo evento su layer 2; 
 		
 
 		//funzioni ausiliarie
-		void findCosDirection(double *cosDir, double th, double phi);//trova coseni direttori		
+		static void findCosDirection(double *cosDir, double th, double phi);//trova coseni direttori		
 
 
 
