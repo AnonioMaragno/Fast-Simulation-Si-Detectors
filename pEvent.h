@@ -27,7 +27,7 @@ class pEvent : public TObject {
 		double GetZVertex() const { return fVertex.GetZ(); };
 
 		//funzione di trasporto
-		static pPoint* Trasporto(pPoint pIniz, double Theta, double Phi, Layer lay, int index);
+		static pPoint* Trasporto(pPoint* pIniz, double* c, Layer lay, int index);
 
 		
 		//funzione di cleaning

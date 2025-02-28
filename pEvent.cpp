@@ -44,15 +44,15 @@ pEvent::~pEvent()
 
 
 
-// Trasporto della particella da un punto iniziale ad un layer
-pPoint* pEvent::Trasporto(pPoint pIniz, double Theta, double Phi, Layer lay, int index)
+// Trasporto della particella da un punto iniziale ad un layer (c -> coseni direttori)
+pPoint* pEvent::Trasporto(pPoint* pIniz, double* c, Layer lay, int index)
 {
-    static double c[3]; //array che conterrà i coseni direttori
-    findCosDirection(c, Theta, Phi);//trova coseni direttori
-    static double t, x0, y0, z0, x, y, z, R, delta, b, sqs;//delta, b e sqs servono come variabili ausiliare per snellire la scrittura
-    x0 = pIniz.GetX();
-    y0 = pIniz.GetY();
-    z0 = pIniz.GetZ();
+    static double t, x0, y0, z0, x, y, z, R, delta, b, sqs;
+    //delta, b e sqs servono come variabili ausiliare per snellire la scrittura
+    
+    x0 = pIniz->GetX();
+    y0 = pIniz->GetY();
+    z0 = pIniz->GetZ();
 
     static TClonesArray* ptrhits = nullptr;
     static pPoint* ptrNewPoint;
@@ -101,6 +101,8 @@ pPoint* pEvent::Trasporto(pPoint pIniz, double Theta, double Phi, Layer lay, int
     return ptrNewPoint;
 }
 
+
+//da eliminare se tutto funziona
 void pEvent::findCosDirection(double *cosDir, double th, double phi)
 {
     cosDir[0] = sin(th) * cos(phi);
