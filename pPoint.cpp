@@ -26,6 +26,6 @@ pPoint::pPoint(const pPoint &source):
 
 // Destructor
 pPoint::~pPoint() {
-
+  std::cout << "Ho distrutto il punto di coordinata x: " << GetX() << std::endl; 
 }
 
