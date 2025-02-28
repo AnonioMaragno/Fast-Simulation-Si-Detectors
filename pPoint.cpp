@@ -1,7 +1,4 @@
-#include "TObject.h"
 #include "pPoint.h"
-
-
 
 ClassImp(pPoint)
 

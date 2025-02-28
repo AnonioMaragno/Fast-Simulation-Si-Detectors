@@ -3,6 +3,8 @@
 
 #include "TObject.h"
 
+enum class Layer {BP, L1, L2};
+
 
 class pPoint : public TObject {
 
