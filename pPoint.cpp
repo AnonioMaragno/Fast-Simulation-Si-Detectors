@@ -24,6 +24,16 @@ pPoint::pPoint(const pPoint &source):
 
 }
 
+void pPoint::operator=(const pPoint &source)
+{
+  if (this != &source){
+    TObject::operator=(source);
+    fX = source.fX;
+    fY = source.fY;
+    fZ = source.fZ;
+  }
+}
+
 // Destructor
 pPoint::~pPoint() {
   std::cout << "Ho distrutto il punto di coordinata x: " << GetX() << std::endl; 

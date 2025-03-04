@@ -20,8 +20,8 @@ void Simulation() {
 
     // Lettura distribuzioni di molteplicità e psedorapidità dal file kinem.root
     TFile *f = new TFile("kinem.root");
-    TH1F *eta = (TH1F*)f->Get("heta");
-    TH1F *mul = (TH1F*)f->Get("hmul");
+    TH1F *eta = (TH1F*)f->Get("heta2");
+    TH1F *mul = (TH1F*)f->Get("hm");
 
     // Creazione di un tree
     TFile outfile("treeSimulated.root", "RECREATE");
@@ -57,22 +57,21 @@ void Simulation() {
         multi = (int) mul->GetRandom();//genera molteplicità
         pEvent* ev = new pEvent(vertex, multi);
         for (int index = 0; index<multi; index++){
-            tempPoint = &pPoint(*vertex);//metto sullo stack perché tanto la copia viene cancellata alla fine dell'iterazione
+            tempPoint = new pPoint(*vertex);//metto sullo stack perché tanto la copia viene cancellata alla fine dell'iterazione
             generaDirezione(eta, theta, phi);//generi theta e phi
             findCosDirection(cd, theta, phi);//trova coseni direttori
             for (const auto& l : layers){
-                ptrPoint = ev->Trasporto(tempPoint, cd, l, index);//Qui si può ridurre tutto a tempPoint ossia riaggiornarlo stesso qui dentro
-                if (ptrPoint == nullptr){
+                tempPoint = ev->Trasporto(tempPoint, cd, l, index);//Qui si può ridurre tutto a tempPoint ossia riaggiornarlo stesso qui dentro
+                if (tempPoint == nullptr){
                     break;
                 }
                 else{
-                    tempPoint = ptrPoint;
                     if (kFlagMS){
                         MultipleScattering(cd);
                     }
                 }
             }
-
+            delete tempPoint;
         }
         zVert = ev->GetZVertex();
         tree -> Fill();
@@ -86,6 +85,7 @@ void Simulation() {
     outfile.Write();
     outfile.Close();
 
+    pEvent::disallocateMemory();
 
 
 }

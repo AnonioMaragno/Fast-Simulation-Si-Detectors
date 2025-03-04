@@ -21,7 +21,8 @@ TClonesArray* pEvent::fHitsL2 = new TClonesArray("pHit", 50);
 // metto molteplicità a zero, vertice a (0,0,0) 
 pEvent::pEvent(): TObject(),
 fM(0){
-    SetVertex(&pPoint());
+    pPoint *pto = new pPoint(0., 0., 0.);
+    SetVertex(pto);
     fCounter += 1;
 }
 
@@ -35,7 +36,7 @@ fM(mult){
 
 // distruttore
 pEvent::~pEvent()
-{
+{    
     // debug
     cout << "Cancello l'evento numero: " << fCounter << endl;
 

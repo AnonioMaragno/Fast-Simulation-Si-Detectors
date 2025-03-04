@@ -20,6 +20,15 @@ pHit::pHit(const pHit &source): pPoint(source), fId(source.fId), fLayer(source.f
 
 }
 
+void pHit::operator=(const pHit &source)
+{
+    if (this != &source){
+    pPoint::operator=(source);
+    fId = source.fId;
+    fLayer = source.fLayer;
+  }
+}
+
 // Destructor
 pHit::~pHit() {
 

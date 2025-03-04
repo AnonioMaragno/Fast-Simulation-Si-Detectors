@@ -12,7 +12,8 @@ class pHit : public pPoint {
         pHit();
         pHit(double x, double y, double z, Layer layer, int index, int count);
         pHit(const pHit& source);
-		virtual ~pHit();
+        void operator=(const pHit& source);//assignment operator
+        virtual ~pHit();
 
         void SetLayer(Layer layer) {fLayer = layer;}
         Layer GetLayer() const {return fLayer;}

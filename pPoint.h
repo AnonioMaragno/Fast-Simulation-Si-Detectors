@@ -13,6 +13,7 @@ class pPoint : public TObject {
 		pPoint();
 		pPoint(double x, double y, double z/*, double theta, double phi, double r*/);
         pPoint(const pPoint& source);
+        void operator=(const pPoint& source);//assignment operator
 		virtual ~pPoint();
 		
         double GetX() const {return fX;} 
