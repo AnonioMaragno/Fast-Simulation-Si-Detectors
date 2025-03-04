@@ -34,11 +34,19 @@ fM(mult){
     fCounter += 1;
 }
 
+pEvent::pEvent(const pEvent& source): 
+TObject(source),
+fVertex(source.fVertex),
+fM(source.fM){
+    
+
+}
+
 // distruttore
 pEvent::~pEvent()
 {    
     // debug
-    cout << "Cancello l'evento numero: " << fCounter << endl;
+    cout << "\n\nCancello l'evento numero: " << fCounter << endl;
 
     //libera memoria
     fVertex = nullptr; //si occupa già il programma di simulazione liberare la memoria heap
@@ -59,7 +67,7 @@ pPoint* pEvent::Trasporto(pPoint* pIniz, double* c, Layer lay, int index)
     z0 = pIniz->GetZ();
 
     static TClonesArray* ptrhits = nullptr;
-    static pPoint* ptrNewPoint;
+    //static pPoint* ptrNewPoint;
     static int* ptrRegCounter;
 
     if (lay == Layer::L1){
@@ -73,9 +81,14 @@ pPoint* pEvent::Trasporto(pPoint* pIniz, double* c, Layer lay, int index)
         ptrRegCounter = &fRegisteredL2;
     }
     else{
-        R = 30;
+        R = 30; 
         ptrhits = fHitsBP;
     } 
+
+    cout << "Puntatore" << ptrhits << "  Taglia del TclonesArray: " << ptrhits->GetSize() << endl;
+
+ 
+    TClonesArray &hits = *ptrhits; 
 
     // calcolo di t
     b = x0*c[0] + y0*c[1];
@@ -88,19 +101,27 @@ pPoint* pEvent::Trasporto(pPoint* pIniz, double* c, Layer lay, int index)
     y = y0 + c[1]*t;
     z = z0 + c[2]*t;
 
+    cout << "Coordinate del punto (funzione Trasporto): X = " << x << " Y = " << y << " Z = " << z << endl;
+
     //creo la hit se rispetto la condizione di essere nel rivelatore
     if ( lay == Layer::BP ){
-        new (ptrhits -> At(index)) pHit(x,y,z,lay,index,fCounter);
-        *ptrNewPoint = pPoint(x,y,z);
+        new (hits[index]) pHit(x,y,z,lay,index,fCounter);
+        
+        pIniz->~pPoint();
+        new (pIniz) pPoint(x,y,z);
     }
     else if (z<135 && z>-135){
+        new (hits[*ptrRegCounter]) pHit(x,y,z,lay,index,fCounter);
         *ptrRegCounter += 1;
-        new (ptrhits -> At(*ptrRegCounter)) pHit(x,y,z,lay,index,fCounter);
-        *ptrNewPoint = pPoint(x,y,z);
+        pIniz->~pPoint();
+        new (pIniz) pPoint(x,y,z);
     }
     else{
-        ptrNewPoint = nullptr;
+        pIniz->~pPoint();
+        pIniz = nullptr;
     }
 
-    return ptrNewPoint;
+    cout << "Sono fuori dal tunnel del Trasporto" << endl;
+
+    return pIniz;
 }

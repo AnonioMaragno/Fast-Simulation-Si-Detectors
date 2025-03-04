@@ -9,7 +9,8 @@ pPoint::pPoint(): TObject(), fX(0.), fY(0.), fZ(0.)/*, fTheta(0.), fPhi(0.), fR(
 
 // Standard constructor
 pPoint::pPoint(double x, double y, double z/*, double theta, double phi, double r*/): TObject(), fX(x), fY(y), fZ(z)/*, fTheta(theta), fPhi(phi), fR(r)*/ {
-
+  /*std::cout << "Sto costruendo il punto (" << x << "," << y << ","<< z << ")" << std::endl;
+  std::cout << this << std::endl;*/
 }
 
 // Copy constructor
@@ -36,6 +37,6 @@ void pPoint::operator=(const pPoint &source)
 
 // Destructor
 pPoint::~pPoint() {
-  std::cout << "Ho distrutto il punto di coordinata x: " << GetX() << std::endl; 
+  //std::cout << "Ho distrutto il punto di coordinata x: " << GetX() << std::endl; 
 }
 

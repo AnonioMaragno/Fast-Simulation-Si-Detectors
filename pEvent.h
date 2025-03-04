@@ -55,15 +55,16 @@ class pEvent : public TObject {
 		int fM;// Molteplicità di particelle
 		pPoint* fVertex;// Puntatore al vertice
 
-		static TClonesArray *fHitsBP;// Array di hits per questo evento su beam pipe (debug);
-		static TClonesArray *fHitsL1;// Array di hits per questo evento su layer 1;
-		static TClonesArray *fHitsL2;// Array di hits per questo evento su layer 2;
+		//array che conterranno le hits
+		static TClonesArray *fHitsBP; //->
+		static TClonesArray *fHitsL1; //-> 
+		static TClonesArray *fHitsL2; //-> 
 	
 
 		// ASSIGNEMENT OPERATOR E COPY DICHIARATI PRIVATI COSÌ NON LI COSTRUISCE IL COMPILER
 		// NON VOGLIO COPIE DEL MIO EVENTO
 		void operator=(const pEvent& source){};//assignment operator
-		pEvent(const pEvent& source) {};//copy constructor
+		pEvent(const pEvent& source);//copy constructor
 
 
 		

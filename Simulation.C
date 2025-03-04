@@ -8,10 +8,10 @@
 #include "TRandom3.h"
 #include "TH1F.h"
 
-const int kNoEvents = 10; //Numero di eventi da simulare
+const int kNoEvents = 2; //Numero di eventi da simulare
 const bool kFlagMS = false; //Flag per vedere se simulare o no il Multiple scattering 
 
-void generaVertice(pPoint* v );
+pPoint* generaVertice();
 void generaDirezione(TH1F* etaDist, double& Th, double& Ph);
 void findCosDirection(double *cosDir, double th, double phi);
 void MultipleScattering(double* cd);
@@ -24,28 +24,30 @@ void Simulation() {
     TH1F *mul = (TH1F*)f->Get("hm");
 
     // Creazione di un tree
-    TFile outfile("treeSimulated.root", "RECREATE");
+    TFile* outfile = new TFile("treeSimulated.root", "RECREATE");
     TTree *tree = new TTree("T","TTree con 4 branches");
 
     TClonesArray* ptrHitsL1 = pEvent::GetPtrHitsL1();
     TClonesArray* ptrHitsL2 = pEvent::GetPtrHitsL2();
+
     pPoint* vertex;//qui dichiaro e poi instanzio memoria su vertex nella funzione generaVertice
-    double zVert;//per salvare solo z del vertice
-    int multi;//molteplicità
+    double zVert = 0.0;//per salvare solo z del vertice
+    int multi = 0;//molteplicità
 
     
     // Dichiarazione dei 4 branch del TTree
     tree->Branch("zVertex", &zVert);
-    tree->Branch("Mult",&multi);
-    tree->Branch("HitsL1",&ptrHitsL1);
-    tree->Branch("HitsL2",&ptrHitsL2);
-
+    tree->Branch("Mult", &multi);
+    //tree->Branch("HitsL1", "TClonesArray", &ptrHitsL1, 64000, 0);
+    //tree->Branch("HitsL2", "TClonesArray", &ptrHitsL2, 64000, 0);
+    tree->Branch("HitsL1", &ptrHitsL1, 32000, 0);
+    tree->Branch("HitsL2", &ptrHitsL2, 32000, 99);
 
     double theta, phi; //direzione iniziale
-    
+
     //puntatori ausiliari    
     pPoint* tempPoint;
-    pPoint* ptrPoint;
+    //pPoint* ptrPoint;
 
 
     double cd[3]; //array che conterrà i coseni direttori  
@@ -53,13 +55,25 @@ void Simulation() {
     Layer layers[3] = {Layer::BP, Layer::L1, Layer::L2};//array che serve per simulare cronologicamente dove incide la particella
 
     for (int k=0; k<kNoEvents; k++){
-        generaVertice(vertex);//generazione vertice
+        vertex = generaVertice(); //generazione vertice
+        cout << "Evento n" << k+1 << ". Cooridnate del vertice: X = " << vertex->GetX() << ", Y = " << vertex->GetY() << ", Z = " << vertex->GetZ() << endl; 
+
         multi = (int) mul->GetRandom();//genera molteplicità
+        cout << "Molteplicità di particelle nell'evento = " << multi << endl;
+
         pEvent* ev = new pEvent(vertex, multi);
+        multi = 3;
         for (int index = 0; index<multi; index++){
+            cout << "Particella n" << index+1 << endl;
+
             tempPoint = new pPoint(*vertex);//metto sullo stack perché tanto la copia viene cancellata alla fine dell'iterazione
             generaDirezione(eta, theta, phi);//generi theta e phi
+            cout << "Direzione inziale: theta = " << theta << ", phi = " << phi << endl;
+            //cout << "tempPoint coordinate (dovrebbero essere le stesse di vertex): X = " << tempPoint->GetX() << " Y = " << tempPoint->GetY() << " Z = " << tempPoint->GetZ() << endl;
+
             findCosDirection(cd, theta, phi);//trova coseni direttori
+            //cout << "Coseni direttori: cd[0] = " << cd[0] << " cd[1] = " << cd[1] << " cd[2] = " << cd[2] << endl;
+
             for (const auto& l : layers){
                 tempPoint = ev->Trasporto(tempPoint, cd, l, index);//Qui si può ridurre tutto a tempPoint ossia riaggiornarlo stesso qui dentro
                 if (tempPoint == nullptr){
@@ -74,35 +88,43 @@ void Simulation() {
             delete tempPoint;
         }
         zVert = ev->GetZVertex();
+
+        cout << "Se arrivo qua il problema è col tree" << endl;
+
         tree -> Fill();
+
+        cout << "Se arrivo qua il problema è dopo il tree" << endl;
+
         delete vertex;
         vertex = nullptr;
         delete ev;
+
     }
 
 
 
-    outfile.Write();
-    outfile.Close();
+    outfile->Write();
+    outfile->Close();
 
     pEvent::disallocateMemory();
 
 
 }
 
-void generaVertice(pPoint* v ){
+pPoint* generaVertice(){
     // Generazione del vertice
     double xVert = gRandom->Gaus(0,0.1);
     double yVert = gRandom->Gaus(0,0.1);
     double zVert = gRandom->Gaus(0,53);
-    v = new pPoint(xVert, yVert, zVert);
+    pPoint* v = new pPoint(xVert, yVert, zVert);
+    return v;
 };
 
 void generaDirezione(TH1F* etaDist, double& Th, double& Ph){
     // Generazione theta e phi
-    double phi = 2*TMath::ACos(-1)*gRandom->Rndm();
+    Ph = 2*acos(-1)*(gRandom->Rndm());
     double pseudor = etaDist->GetRandom();
-    double theta = 2*TMath::ATan(exp(-pseudor));
+    Th = 2*atan(exp(-pseudor));
 }
 
 
