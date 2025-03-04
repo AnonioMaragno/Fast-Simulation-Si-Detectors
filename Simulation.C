@@ -8,7 +8,7 @@
 #include "TRandom3.h"
 #include "TH1F.h"
 
-const int kNoEvents = 2; //Numero di eventi da simulare
+const int kNoEvents = 20; //Numero di eventi da simulare
 const bool kFlagMS = false; //Flag per vedere se simulare o no il Multiple scattering 
 
 pPoint* generaVertice();
@@ -40,8 +40,8 @@ void Simulation() {
     tree->Branch("Mult", &multi);
     //tree->Branch("HitsL1", "TClonesArray", &ptrHitsL1, 64000, 0);
     //tree->Branch("HitsL2", "TClonesArray", &ptrHitsL2, 64000, 0);
-    tree->Branch("HitsL1", &ptrHitsL1, 32000, 0);
-    tree->Branch("HitsL2", &ptrHitsL2, 32000, 99);
+    tree->Branch("HitsL1", &ptrHitsL1);
+    tree->Branch("HitsL2", &ptrHitsL2);
 
     double theta, phi; //direzione iniziale
 
@@ -62,7 +62,7 @@ void Simulation() {
         cout << "Molteplicità di particelle nell'evento = " << multi << endl;
 
         pEvent* ev = new pEvent(vertex, multi);
-        multi = 3;
+        
         for (int index = 0; index<multi; index++){
             cout << "Particella n" << index+1 << endl;
 
@@ -90,6 +90,9 @@ void Simulation() {
         zVert = ev->GetZVertex();
 
         cout << "Se arrivo qua il problema è col tree" << endl;
+        cout << "Puntatore al fHitsL1 " << ptrHitsL1 << " con ingressi in L1 pari a: " << ptrHitsL1->GetEntries() << endl;
+        cout << "Puntatore al fHitsL2 " << ptrHitsL2 << " con ingressi in L2 pari a: " << ptrHitsL2->GetEntries() << endl;
+
 
         tree -> Fill();
 
@@ -98,6 +101,9 @@ void Simulation() {
         delete vertex;
         vertex = nullptr;
         delete ev;
+
+        cout << "Puntatore al fHitsL1 " << ptrHitsL1 << " con ingressi in L1 pari a: " << ptrHitsL1->GetEntries() << endl;
+        cout << "Puntatore al fHitsL2 " << ptrHitsL2 << " con ingressi in L2 pari a: " << ptrHitsL2->GetEntries() << endl;
 
     }
 

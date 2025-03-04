@@ -52,6 +52,8 @@ pEvent::~pEvent()
     fVertex = nullptr; //si occupa già il programma di simulazione liberare la memoria heap
     fHitsL1->Clear();
     fHitsL2->Clear();
+    fRegisteredL1 = 0;
+    fRegisteredL2 = 0;
 }
 
 
