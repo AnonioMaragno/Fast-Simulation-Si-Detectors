@@ -9,7 +9,7 @@
 #include "TH1F.h"
 
 const int kNoEvents = 20; //Numero di eventi da simulare
-const bool kFlagMS = false; //Flag per vedere se simulare o no il Multiple scattering 
+const bool kFlagMS = true; //Flag per vedere se simulare o no il Multiple scattering 
 
 pPoint* generaVertice();
 void generaDirezione(TH1F* etaDist, double& Th, double& Ph);
@@ -72,7 +72,7 @@ void Simulation() {
             //cout << "tempPoint coordinate (dovrebbero essere le stesse di vertex): X = " << tempPoint->GetX() << " Y = " << tempPoint->GetY() << " Z = " << tempPoint->GetZ() << endl;
 
             findCosDirection(cd, theta, phi);//trova coseni direttori
-            //cout << "Coseni direttori: cd[0] = " << cd[0] << " cd[1] = " << cd[1] << " cd[2] = " << cd[2] << endl;
+            cout << "Coseni direttori: cd[0] = " << cd[0] << " cd[1] = " << cd[1] << " cd[2] = " << cd[2] << endl;
 
             for (const auto& l : layers){
                 tempPoint = ev->Trasporto(tempPoint, cd, l, index);//Qui si può ridurre tutto a tempPoint ossia riaggiornarlo stesso qui dentro
@@ -170,4 +170,7 @@ void MultipleScattering(double *cd){
             cd[i] += mr[i][j] * cdp[j];
         }
     }
+
+    cout << "Coseni direttori MULTIPLE SCATTERING: cd[0] = " << cd[0] << " cd[1] = " << cd[1] << " cd[2] = " << cd[2] << endl;
+
 }
