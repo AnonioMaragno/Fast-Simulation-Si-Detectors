@@ -157,8 +157,9 @@ void MultipleScattering(double *cd){
     mr[2][2] = cd[2];
 
     // Generazione delle direzioni dopo lo scttaering multiplo
-    double thp = gRandom->Gaus(0,0.001);
+    double thplane = gRandom->Gaus(0,0.001);
     double php = 2*acos(-1)*gRandom->Rndm();
+    double thp = thplane/sin(php);
     double cdp[3];
     cdp[0] = sin(thp)*cos(php);
     cdp[1] = sin(thp)*sin(php);
