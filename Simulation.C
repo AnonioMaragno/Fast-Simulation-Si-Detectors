@@ -38,8 +38,6 @@ void Simulation() {
     // Dichiarazione dei 4 branch del TTree
     tree->Branch("zVertex", &zVert);
     tree->Branch("Mult", &multi);
-    //tree->Branch("HitsL1", "TClonesArray", &ptrHitsL1, 64000, 0);
-    //tree->Branch("HitsL2", "TClonesArray", &ptrHitsL2, 64000, 0);
     tree->Branch("HitsL1", &ptrHitsL1);
     tree->Branch("HitsL2", &ptrHitsL2);
 

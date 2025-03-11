@@ -34,6 +34,31 @@ pHit::~pHit() {
 
 }
 
-double pHit::GetPhi() const {
+void pHit::SetPhi(double phi)
+{
+    static double r = 0.0;
+    r = GetR();
+    SetX(r*cos(phi));
+    SetY(r*sin(phi));
+}
+
+double pHit::GetR()
+{
+    static double R = 0.0;
+    Layer lay = GetLayer();
+    if (lay == Layer::L1){
+        R = 40;
+    }
+    else if (lay == Layer::L2){
+        R = 70;
+    }
+    else{
+        R = 30; 
+    }
+    return R;
+}
+
+double pHit::GetPhi() const
+{
     return ATan(GetY()/GetX());
 }

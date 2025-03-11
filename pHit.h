@@ -16,6 +16,8 @@ class pHit : public pPoint {
         virtual ~pHit();
 
         void SetLayer(Layer layer) {fLayer = layer;}
+        void SetPhi(double phi);
+        double GetR();
         Layer GetLayer() const {return fLayer;}
         double GetPhi() const;
 

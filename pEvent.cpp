@@ -11,9 +11,9 @@ int pEvent::fRegisteredL2 = 0;
 
 
 //array che conterranno le hit
-TClonesArray* pEvent::fHitsBP = new TClonesArray("pHit", 50);
-TClonesArray* pEvent::fHitsL1 = new TClonesArray("pHit", 50);
-TClonesArray* pEvent::fHitsL2 = new TClonesArray("pHit", 50);
+TClonesArray* pEvent::fHitsBP = new TClonesArray("pHit", 100);
+TClonesArray* pEvent::fHitsL1 = new TClonesArray("pHit", 100);
+TClonesArray* pEvent::fHitsL2 = new TClonesArray("pHit", 100);
 
 
 
