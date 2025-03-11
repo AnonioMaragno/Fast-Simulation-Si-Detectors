@@ -11,10 +11,11 @@
 void ReadTree() {
 
     // Dichiarazione oggetti in cui salvare dati dal tree in input
-    int zVertex;
+    double zVertex;
     int multi;
     TClonesArray* ptrHitsL1 = new TClonesArray("pHit", 100);
     TClonesArray* ptrHitsL2 = new TClonesArray("pHit", 100);
+
     
     // Apertura file di input
     TFile hfile("treeSimulated.root");
@@ -29,15 +30,16 @@ void ReadTree() {
     // Definizione degli indirizzi per la lettura dei dati su ttree
     bZVert->SetAddress(&zVertex);
     bMult->SetAddress(&multi);
-    bHitsL1->SetAddress(ptrHitsL1);
-    bHitsL2->SetAddress(ptrHitsL2);
+    bHitsL1->SetAddress(&ptrHitsL1);
+    bHitsL2->SetAddress(&ptrHitsL2);
 
     // loop sugli ingressi nel TTree
     for(int ev=0; ev<tree->GetEntries(); ev++){
+
         tree->GetEvent(ev);
         cout << "zVertex = " << zVertex << endl;
         cout << "multi = " << multi << endl;
-        
+
 
     }
     

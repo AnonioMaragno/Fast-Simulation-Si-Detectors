@@ -14,4 +14,6 @@ void compilaMacro(TString myopt="fast"){
   gSystem->CompileMacro("pHit.cpp",opt.Data());
   gSystem->CompileMacro("pEvent.cpp",opt.Data());
   gSystem->CompileMacro("Simulation.C",opt.Data());
+  gSystem->CompileMacro("ReadTree.C",opt.Data());
+
 }
