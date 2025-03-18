@@ -8,7 +8,10 @@
 #include "TRandom3.h"
 #include "TH1F.h"
 
-void ReadTree() {
+void PointSmearing(pHit* hit);
+void Noise(TClonesArray &hits, double size, double muNoise, Layer lay, double event);
+
+void Smearing() {
 
     // Dichiarazione oggetti in cui salvare dati dal tree in input
     double zVertex;
@@ -16,12 +19,14 @@ void ReadTree() {
     TClonesArray* ptrHitsL1 = new TClonesArray("pHit", 100);
     TClonesArray* ptrHitsL2 = new TClonesArray("pHit", 100);
 
-    
     // Apertura file di input
-    TFile hfile("treeSimulated.root");
+    TFile hfile1("treeSimulated.root");
+
+    // Apertura file di output
+    TFile hfile2("treeSmeared.root", "RECREATE");
     
     // Lettura TTree  e branch
-    TTree *treeIn = (TTree*) hfile.Get("T");
+    TTree *treeIn = (TTree*) hfile1.Get("T");
     TBranch *bZVert = treeIn->GetBranch("zVertex");
     TBranch *bMult = treeIn->GetBranch("Mult");
     TBranch *bHitsL1 = treeIn->GetBranch("HitsL1");
@@ -32,6 +37,14 @@ void ReadTree() {
     bMult->SetAddress(&multi);
     bHitsL1->SetAddress(&ptrHitsL1);
     bHitsL2->SetAddress(&ptrHitsL2);
+
+    // Generazione nuovo Tree
+    TTree *treeOut = new TTree("TOUT","TTree con 4 branches");
+    // Dichiarazione dei 4 branch del TTree
+    treeOut->Branch("zVertex", &bZVert);
+    treeOut->Branch("Mult", &bMult);
+    treeOut->Branch("HitsL1", &bHitsL1);
+    treeOut->Branch("HitsL2", &bHitsL2);
 
     // Variabili di comodo
     double muNoise1, muNoise2;
@@ -51,13 +64,13 @@ void ReadTree() {
         size1 = ptrHitsL1->GetEntriesFast();
         for (int i = 0; i < size1; i++) {
             pointL1 = (pHit*) ptrHitsL1->At(i);
-            Smearing(pointL1);
+            PointSmearing(pointL1);
         }
 
         size2 = ptrHitsL2->GetEntriesFast();
         for (int i = 0; i < size1; i++) {
             pointL2 = (pHit*) ptrHitsL2->At(i);
-            Smearing(pointL2);
+            PointSmearing(pointL2);
         }
         
         muNoise1 = gRandom->Poisson(5);
@@ -65,21 +78,17 @@ void ReadTree() {
         Noise(hits1, size1, muNoise1, Layer::L1, ev);
         Noise(hits2, size2, muNoise2, Layer::L2, ev);
         
-        
-
+        treeOut->Fill();
 
     }
 
-
-    hfile.Write();
-    hfile.Close();
-    
-
-
+    hfile2.Write();
+    hfile1.Close();
+    hfile2.Close();
 
 }
 
-void Smearing(pHit* hit) {
+void PointSmearing(pHit* hit) {
     
     double z = hit->GetZ();
     z = z + gRandom->Gaus(0,0.12);
@@ -103,6 +112,5 @@ void Noise(TClonesArray &hits, double size, double muNoise, Layer lay, double ev
         hit->SetZ(gRandom->Uniform(-13.5,13.5));
         hit->SetPhi(gRandom->Uniform(0,2*acos(-1)));
     }
-    
 
 }
