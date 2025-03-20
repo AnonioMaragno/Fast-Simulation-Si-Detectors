@@ -40,6 +40,7 @@ void Smearing() {
 
     // Generazione nuovo Tree
     TTree *treeOut = new TTree("TOUT","TTree con 4 branches");
+    treeOut->SetDirectory(&hfile2);
     // Dichiarazione dei 4 branch del TTree
     treeOut->Branch("zVertex", &bZVert);
     treeOut->Branch("Mult", &bMult);
