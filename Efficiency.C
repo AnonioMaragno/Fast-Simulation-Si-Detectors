@@ -88,7 +88,7 @@ void Efficiency() {
 
 
     
-
+    histo->Write();
     
 
 
