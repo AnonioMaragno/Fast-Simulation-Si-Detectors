@@ -17,6 +17,10 @@ const int nHist = 10;
 
 void Efficiency() {
 
+    cout << "----------------------------------" << endl;
+    cout << "-------- EFFICIENCY --------------" << endl;
+    cout << "----------------------------------" << endl << endl;
+
     // Lettura file input e ntuple
     TFile fileIn("treeReconstructed.root");
     float flag, zRec, zTrue, mult;
@@ -32,8 +36,8 @@ void Efficiency() {
     // Variabili ausiliarie
     const double zMin = -4*53;
     const double zMax = 4*53;
-    const double residMin = -10;
-    const double residMax = 10;
+    const double residMin = -30;
+    const double residMax = 30;
 
     // Creazione istogrammi
     /*TH1D *vHist[nHist];
@@ -57,7 +61,7 @@ void Efficiency() {
         // Riempio histo
         resid = zRec - zTrue;
         if (flag == 1) {
-            histo->Fill(mult, residMin);
+            histo->Fill(mult, resid);
 
         }
         else {
@@ -75,19 +79,19 @@ void Efficiency() {
     for(int i=0; i<14; i++) {
         
         //snprintf(name, "h%i", name[i]);
-        vt[i] = histo->ProjectionX("h", 5*i, 5*(i+1));
+        vt[i] = histo->ProjectionY("h", 5*i, 5*(i+1));
         num = vt[i]->Integral();
         den = vt[i]->GetEntries();
         eff[i] = num/den;
         multArray[i] = 5*i;
-
+        vt[i]->Write();
     }
 
     TGraph *EffMult = new TGraph(14,eff,multArray);
 
 
 
-    
+    EffMult->Write();
     histo->Write();
     
 

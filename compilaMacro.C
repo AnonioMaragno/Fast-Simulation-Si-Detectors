@@ -1,5 +1,6 @@
 #include "TString.h"
 #include "TSystem.h"
+#include "TROOT.h"
 
 
 void compilaMacro(TString myopt="fast"){
@@ -14,8 +15,12 @@ void compilaMacro(TString myopt="fast"){
   gSystem->CompileMacro("pHit.cpp",opt.Data());
   gSystem->CompileMacro("pEvent.cpp",opt.Data());
   gSystem->CompileMacro("Simulation.C",opt.Data());
-  //gSystem->CompileMacro("Smearing.C",opt.Data());
+  gSystem->CompileMacro("Smearing.C",opt.Data());
   gSystem->CompileMacro("Reconstruction.C",opt.Data());
   gSystem->CompileMacro("Efficiency.C",opt.Data());
+  /*gROOT->ProcessLine("Simulation();");
+  gROOT->ProcessLine("Smearing();");
+  gROOT->ProcessLine("Reconstruction();");
+  gROOT->ProcessLine("Efficiency();");*/
 
 }

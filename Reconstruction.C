@@ -18,6 +18,11 @@ double TrovaTracklet(pHit* h1, pHit* h2);
 void RunningWindow(TH1D* histo, double wSize, double *ptrZ);
 
 void Reconstruction(){
+
+    cout << "----------------------------------" << endl;
+    cout << "-------- RECONSTRUCTION --------------" << endl;
+    cout << "----------------------------------" << endl << endl;
+
     // Dichiarazione oggetti in cui salvare dati dal tree in input
     double zVertex;
     int multi;
@@ -119,7 +124,7 @@ void Reconstruction(){
     }
 
     cout << "\n EVENTI RICOSTRUITI: " << countRec << endl;
-    cout << "EVENTI TOTALI: " << tree->GetEntries() << endl;
+    cout << "EVENTI TOTALI: " << tree->GetEntries() << endl << endl;
 
     c->Close();
     ntuple->Write();
@@ -174,7 +179,6 @@ void RunningWindow(TH1D *histo, double wSize, double* ptrZ)
                 maxFound = true;
             }
             else if (abs(partialSum-max) <= 1 && i-binMax > wWidth){
-                cout << "MAX SU DUE PICCHI DIVERSI" << endl;
                 maxFound = false;
             }
         }

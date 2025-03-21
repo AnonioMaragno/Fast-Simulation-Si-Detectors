@@ -13,6 +13,10 @@ void Noise(TClonesArray &hits, double size, double muNoise, Layer lay, double ev
 
 void Smearing() {
 
+    cout << "----------------------------------" << endl;
+    cout << "-------- SMEARING --------------" << endl;
+    cout << "----------------------------------" << endl << endl;
+
     // Dichiarazione oggetti in cui salvare dati dal tree in input
     double zVertex;
     int multi;
@@ -42,10 +46,10 @@ void Smearing() {
     TTree *treeOut = new TTree("TOUT","TTree con 4 branches");
     treeOut->SetDirectory(&hfile2);
     // Dichiarazione dei 4 branch del TTree
-    treeOut->Branch("zVertex", &bZVert);
-    treeOut->Branch("Mult", &bMult);
-    treeOut->Branch("HitsL1", &bHitsL1);
-    treeOut->Branch("HitsL2", &bHitsL2);
+    treeOut->Branch("zVertex", &zVertex);
+    treeOut->Branch("Mult", &multi);
+    treeOut->Branch("HitsL1", &ptrHitsL1);
+    treeOut->Branch("HitsL2", &ptrHitsL2);
 
     // Variabili di comodo
     double muNoise1, muNoise2;
@@ -59,8 +63,9 @@ void Smearing() {
     for(int ev=0; ev<treeIn->GetEntries(); ev++){
 
         treeIn->GetEvent(ev);
-        cout << "zVertex = " << zVertex << endl;
-        cout << "multi = " << multi << endl;
+        cout << "EVENTO NUMERO: " << ev << endl;
+        cout << "\nzVertex = " << zVertex << endl;
+        cout << "multi = " << multi << endl << endl;
 
         size1 = ptrHitsL1->GetEntriesFast();
         for (int i = 0; i < size1; i++) {
@@ -69,8 +74,8 @@ void Smearing() {
         }
 
         size2 = ptrHitsL2->GetEntriesFast();
-        for (int i = 0; i < size1; i++) {
-            pointL2 = (pHit*) ptrHitsL2->At(i);
+        for (int j = 0; j < size2; j++) {
+            pointL2 = (pHit*) ptrHitsL2->At(j);
             PointSmearing(pointL2);
         }
         

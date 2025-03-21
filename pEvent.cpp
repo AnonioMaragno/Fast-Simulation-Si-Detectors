@@ -45,9 +45,6 @@ fM(source.fM){
 // distruttore
 pEvent::~pEvent()
 {    
-    // debug
-    cout << "\n\nCancello l'evento numero: " << fCounter << endl;
-
     //libera memoria
     fVertex = nullptr; //si occupa già il programma di simulazione liberare la memoria heap
     fHitsL1->Clear();
@@ -85,9 +82,7 @@ pPoint* pEvent::Trasporto(pPoint* pIniz, double* c, Layer lay, int index)
     else{
         R = 30; 
         ptrhits = fHitsBP;
-    } 
-
-    cout << "Puntatore" << ptrhits << "  Taglia del TclonesArray: " << ptrhits->GetSize() << endl;
+    }
 
  
     TClonesArray &hits = *ptrhits; 
@@ -102,8 +97,6 @@ pPoint* pEvent::Trasporto(pPoint* pIniz, double* c, Layer lay, int index)
     x = x0 + c[0]*t;
     y = y0 + c[1]*t;
     z = z0 + c[2]*t;
-
-    cout << "Coordinate del punto (funzione Trasporto): X = " << x << " Y = " << y << " Z = " << z << endl;
 
     //creo la hit se rispetto la condizione di essere nel rivelatore
     if ( lay == Layer::BP ){
@@ -122,8 +115,6 @@ pPoint* pEvent::Trasporto(pPoint* pIniz, double* c, Layer lay, int index)
         pIniz->~pPoint();
         pIniz = nullptr;
     }
-
-    cout << "Sono fuori dal tunnel del Trasporto" << endl;
 
     return pIniz;
 }
