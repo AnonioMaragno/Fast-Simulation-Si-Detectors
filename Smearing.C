@@ -59,6 +59,10 @@ void Smearing() {
     TClonesArray &hits1 = *ptrHitsL1;
     TClonesArray &hits2 = *ptrHitsL2;
 
+    //debug
+    int noiseCountL1 = 0;
+    int noiseCountL2 = 0;
+
     // loop sugli ingressi nel TTree
     for(int ev=0; ev<treeIn->GetEntries(); ev++){
 
@@ -80,13 +84,18 @@ void Smearing() {
         }
         
         muNoise1 = gRandom->Poisson(5);
+        noiseCountL1 += muNoise1;
         muNoise2 = gRandom->Poisson(5);
+        noiseCountL2 += muNoise2;
         Noise(hits1, size1, muNoise1, Layer::L1, ev);
         Noise(hits2, size2, muNoise2, Layer::L2, ev);
         
         treeOut->Fill();
 
     }
+
+    cout << "PUNTI DI NOISE CREATI SU L1: " << noiseCountL1 << endl;
+    cout << "PUNTI DI NOISE CREATI SU L2: " << noiseCountL2 << endl;
 
     hfile2.Write();
     hfile1.Close();
@@ -115,7 +124,7 @@ void Noise(TClonesArray &hits, double size, double muNoise, Layer lay, double ev
         double z = 0.0;
         new(hits[size+i]) pHit(x, y, z, lay, -i, event);
         pHit* hit = (pHit* ) hits[size+i];
-        hit->SetZ(gRandom->Uniform(-13.5,13.5));
+        hit->SetZ(gRandom->Uniform(-135,135));
         hit->SetPhi(gRandom->Uniform(0,2*acos(-1)));
     }
 
