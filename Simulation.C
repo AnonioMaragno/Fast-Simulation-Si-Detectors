@@ -8,7 +8,7 @@
 #include "TRandom3.h"
 #include "TH1F.h"
 
-const int kNoEvents = 20; //Numero di eventi da simulare
+const int kNoEvents = 100000; //Numero di eventi da simulare
 const bool kFlagMS = true; //Flag per vedere se simulare o no il Multiple scattering 
 
 pPoint* generaVertice();
@@ -17,6 +17,10 @@ void findCosDirection(double *cosDir, double th, double phi);
 void MultipleScattering(double* cd);
 
 void Simulation() {
+
+    cout << "----------------------------------" << endl;
+    cout << "-------- SIMULATION --------------" << endl;
+    cout << "----------------------------------" << endl << endl;
 
     // Lettura distribuzioni di molteplicità e psedorapidità dal file kinem.root
     TFile *f = new TFile("kinem.root");
@@ -54,23 +58,19 @@ void Simulation() {
 
     for (int k=0; k<kNoEvents; k++){
         vertex = generaVertice(); //generazione vertice
-        cout << "Evento n" << k+1 << ". Cooridnate del vertice: X = " << vertex->GetX() << ", Y = " << vertex->GetY() << ", Z = " << vertex->GetZ() << endl; 
+//        cout << "Evento n" << k << "\nCoordinate del vertice: X = " << vertex->GetX() << ", Y = " << vertex->GetY() << ", Z = " << vertex->GetZ() << endl; 
 
         multi = (int) mul->GetRandom();//genera molteplicità
-        cout << "Molteplicità di particelle nell'evento = " << multi << endl;
+//        cout << "multi= " << multi << endl << endl;
 
         pEvent* ev = new pEvent(vertex, multi);
         
         for (int index = 0; index<multi; index++){
-            cout << "Particella n" << index+1 << endl;
-
+            
             tempPoint = new pPoint(*vertex);//metto sullo stack perché tanto la copia viene cancellata alla fine dell'iterazione
             generaDirezione(eta, theta, phi);//generi theta e phi
-            cout << "Direzione inziale: theta = " << theta << ", phi = " << phi << endl;
-            //cout << "tempPoint coordinate (dovrebbero essere le stesse di vertex): X = " << tempPoint->GetX() << " Y = " << tempPoint->GetY() << " Z = " << tempPoint->GetZ() << endl;
 
             findCosDirection(cd, theta, phi);//trova coseni direttori
-            cout << "Coseni direttori: cd[0] = " << cd[0] << " cd[1] = " << cd[1] << " cd[2] = " << cd[2] << endl;
 
             for (const auto& l : layers){
                 tempPoint = ev->Trasporto(tempPoint, cd, l, index);//Qui si può ridurre tutto a tempPoint ossia riaggiornarlo stesso qui dentro
@@ -87,21 +87,15 @@ void Simulation() {
         }
         zVert = ev->GetZVertex();
 
-        cout << "Se arrivo qua il problema è col tree" << endl;
-        cout << "Puntatore al fHitsL1 " << ptrHitsL1 << " con ingressi in L1 pari a: " << ptrHitsL1->GetEntries() << endl;
-        cout << "Puntatore al fHitsL2 " << ptrHitsL2 << " con ingressi in L2 pari a: " << ptrHitsL2->GetEntries() << endl;
+//        cout << "Hits in L1: " << ptrHitsL1->GetEntries() << endl;
+//        cout << "Hits in L2: " << ptrHitsL2->GetEntries() << endl << endl << endl;
 
 
         tree -> Fill();
 
-        cout << "Se arrivo qua il problema è dopo il tree" << endl;
-
         delete vertex;
         vertex = nullptr;
         delete ev;
-
-        cout << "Puntatore al fHitsL1 " << ptrHitsL1 << " con ingressi in L1 pari a: " << ptrHitsL1->GetEntries() << endl;
-        cout << "Puntatore al fHitsL2 " << ptrHitsL2 << " con ingressi in L2 pari a: " << ptrHitsL2->GetEntries() << endl;
 
     }
 
@@ -169,7 +163,5 @@ void MultipleScattering(double *cd){
             cd[i] += mr[i][j] * cdp[j];
         }
     }
-
-    cout << "Coseni direttori MULTIPLE SCATTERING: cd[0] = " << cd[0] << " cd[1] = " << cd[1] << " cd[2] = " << cd[2] << endl;
 
 }

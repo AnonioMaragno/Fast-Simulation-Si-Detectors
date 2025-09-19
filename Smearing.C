@@ -69,7 +69,7 @@ void Smearing() {
         }
 
         size2 = ptrHitsL2->GetEntriesFast();
-        for (int i = 0; i < size1; i++) {
+        for (int i = 0; i < size2; i++) {
             pointL2 = (pHit*) ptrHitsL2->At(i);
             PointSmearing(pointL2);
         }
