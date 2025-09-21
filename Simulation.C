@@ -6,14 +6,19 @@
 #include "TClonesArray.h"
 #include "Riostream.h"
 #include "TRandom3.h"
+#include "TROOT.h"
+#include "TKey.h"
 #include "TH1F.h"
+#include "TF1.h"
+#include "pPoint.h"
 
-const int kNoEvents = 100; //Numero di eventi da simulare
-const bool kFlagMS = true; //Flag per vedere se simulare o no il Multiple scattering 
+const int kNoEvents = 100000; //Numero di eventi da simulare
+const bool kFlagMS = false; //Flag per vedere se simulare o no il Multiple scattering 
+const bool kFlagUniform = false; //Flag per vedere se usare una distribuzione uniforme o no per la molteplicità
 
-pPoint* generaVertice();
-void generaDirezione(TH1F* etaDist, double& Th, double& Ph);
-void findCosDirection(double *cosDir, double th, double phi);
+
+void generaVertice(pPoint* vtx);
+void generaDirezione(TH1F* etaDist, double *cosDir);
 void MultipleScattering(double* cd);
 
 void Simulation() {
@@ -25,31 +30,41 @@ void Simulation() {
     // Lettura distribuzioni di molteplicità e psedorapidità dal file kinem.root
     TFile *f = new TFile("kinem.root");
     TH1F *eta = (TH1F*)f->Get("heta2");
-    TH1F *mul = (TH1F*)f->Get("hm");
+    TH1F* mul;
+
+
+    if (kFlagUniform){
+        // se si vuole distribuzione uniforme per molteplicità
+        mul = new TH1F("h", "Distribuzione uniforme", 100, 2, 100); //minimo 2 particelle
+        TF1* func = new TF1("func", "1", 2, 100);
+
+        mul->FillRandom("func", 100000); 
+    }
+    else{
+        mul = (TH1F*)f->Get("hm");
+    }
+
 
     // Creazione di un tree
     TFile* outfile = new TFile("treeSimulated.root", "RECREATE");
-    TTree *tree = new TTree("T","TTree con 4 branches");
+    TTree *tree = new TTree("T","TTree con 5 branches");
 
-    TClonesArray* ptrHitsL1 = pEvent::GetPtrHitsL1();
-    TClonesArray* ptrHitsL2 = pEvent::GetPtrHitsL2();
-
-    pPoint* vertex;//qui dichiaro e poi instanzio memoria su vertex nella funzione generaVertice
+    TString eventID; //eventID per debug
     double zVert = 0.0;//per salvare solo z del vertice
     int multi = 0;//molteplicità
+    TClonesArray* ptrHitsL1 = pEvent::GetPtrHitsL1(); //per salvare hit  su layer 1
+    TClonesArray* ptrHitsL2 = pEvent::GetPtrHitsL2(); //per salvare hit  su layer 2
 
     
-    // Dichiarazione dei 4 branch del TTree
+    // Dichiarazione dei 5 branch del TTree
+    tree->Branch("eventID", &eventID);
     tree->Branch("zVertex", &zVert);
     tree->Branch("Mult", &multi);
     tree->Branch("HitsL1", &ptrHitsL1);
     tree->Branch("HitsL2", &ptrHitsL2);
 
-    double theta, phi; //direzione iniziale
-
-    //puntatori ausiliari    
-    pPoint* tempPoint;
-    //pPoint* ptrPoint;
+    pPoint* vertex = new pPoint();     //qui dichiaro punto generico e poi setto coordinate in generaVertice
+    pPoint* tempPoint = new pPoint();    //punto ausiliare per la funzione Trasporto 
 
 
     double cd[3]; //array che conterrà i coseni direttori  
@@ -57,80 +72,72 @@ void Simulation() {
     Layer layers[3] = {Layer::BP, Layer::L1, Layer::L2};//array che serve per simulare cronologicamente dove incide la particella
 
     for (int k=0; k<kNoEvents; k++){
-        vertex = generaVertice(); //generazione vertice
-        cout << "Evento n" << k << "\nCoordinate del vertice: X = " << vertex->GetX() << ", Y = " << vertex->GetY() << ", Z = " << vertex->GetZ() << endl; 
 
+        generaVertice(vertex); //generazione vertice
         multi = (int) mul->GetRandom();//genera molteplicità
-        cout << "multi= " << multi << endl << endl;
 
-        pEvent* ev = new pEvent(vertex, multi);
+        pEvent* ev = new pEvent(vertex, multi, k);
         
-        for (int index = 0; index<multi; index++){
+        for (int nParticle = 0; nParticle < multi; nParticle++){
             
-            tempPoint = new pPoint(*vertex);//metto sullo stack perché tanto la copia viene cancellata alla fine dell'iterazione
-            generaDirezione(eta, theta, phi);//generi theta e phi
-
-            findCosDirection(cd, theta, phi);//trova coseni direttori
+            tempPoint->SetEqualTo(*vertex); //copia le coordinate del vertice nel punto ausiliario
+            generaDirezione(eta, cd); //genera theta e phi e trova coseni direttori
 
             for (const auto& l : layers){
-                tempPoint = ev->Trasporto(tempPoint, cd, l, index);//Qui si può ridurre tutto a tempPoint ossia riaggiornarlo stesso qui dentro
-                if (tempPoint == nullptr){
-                    break;
-                }
-                else{
+                bool success = ev->Trasporto(tempPoint, cd, l, nParticle);
+                if (success){
                     if (kFlagMS){
                         MultipleScattering(cd);
                     }
                 }
+                else{  
+                    break;
+                }
             }
-            delete tempPoint;
         }
+        
+        eventID = ev->GetEventID();
         zVert = ev->GetZVertex();
-
-        cout << "Hits in L1: " << ptrHitsL1->GetEntries() << endl;
-        cout << "Hits in L2: " << ptrHitsL2->GetEntries() << endl << endl << endl;
-
 
         tree -> Fill();
 
-        delete vertex;
-        vertex = nullptr;
         delete ev;
-
+        ev = nullptr;
     }
-
-
 
     outfile->Write();
     outfile->Close();
+    f->Close();
 
+    delete vertex;
+    vertex = nullptr;
+    delete tempPoint;
+    tempPoint = nullptr;
     pEvent::disallocateMemory();
 
 
 }
 
-pPoint* generaVertice(){
+void generaVertice(pPoint* vtx){
     // Generazione del vertice
     double xVert = gRandom->Gaus(0,0.1);
     double yVert = gRandom->Gaus(0,0.1);
     double zVert = gRandom->Gaus(0,53);
-    pPoint* v = new pPoint(xVert, yVert, zVert);
-    return v;
-};
 
-void generaDirezione(TH1F* etaDist, double& Th, double& Ph){
-    // Generazione theta e phi
-    Ph = 2*acos(-1)*(gRandom->Rndm());
-    double pseudor = etaDist->GetRandom();
-    Th = 2*atan(exp(-pseudor));
+    vtx->SetCoord(xVert, yVert, zVert);
 }
 
 
-void findCosDirection(double *cosDir, double th, double phi)
-{
-    cosDir[0] = sin(th) * cos(phi);
-    cosDir[1] = sin(th) * sin(phi);
-    cosDir[2] = cos(th);
+void generaDirezione(TH1F* etaDist, double *cosDir){
+    // Generazione theta e phi
+    double Phi = 2*acos(-1)*(gRandom->Rndm());
+    double pseudor = etaDist->GetRandom();
+    double Theta = 2*atan(exp(-pseudor));
+
+    //generazione coseni direttori
+    cosDir[0] = sin(Theta) * cos(Phi);
+    cosDir[1] = sin(Theta) * sin(Phi);
+    cosDir[2] = cos(Theta);
 }
 
 

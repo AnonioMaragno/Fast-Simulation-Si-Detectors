@@ -8,8 +8,12 @@
 #include "TRandom3.h"
 #include "TH1F.h"
 
+using std::string;
+
+const int kMeanNoise = 5;
+
 void PointSmearing(pHit* hit);
-void Noise(TClonesArray &hits, double size, double muNoise, Layer lay, double event);
+void Noise(TClonesArray &hits, int muNoise, Layer lay, TString eventID);
 
 void Smearing() {
 
@@ -18,6 +22,8 @@ void Smearing() {
     cout << "----------------------------------" << endl << endl;
 
     // Dichiarazione oggetti in cui salvare dati dal tree in input
+    TString evID; 
+    TString* evIDptr = 0;  
     double zVertex;
     int multi;
     TClonesArray* ptrHitsL1 = new TClonesArray("pHit", 100);
@@ -31,31 +37,31 @@ void Smearing() {
     
     // Lettura TTree  e branch
     TTree *treeIn = (TTree*) hfile1.Get("T");
-    TBranch *bZVert = treeIn->GetBranch("zVertex");
-    TBranch *bMult = treeIn->GetBranch("Mult");
-    TBranch *bHitsL1 = treeIn->GetBranch("HitsL1");
-    TBranch *bHitsL2 = treeIn->GetBranch("HitsL2");
-  
+    
     // Definizione degli indirizzi per la lettura dei dati su ttree
-    bZVert->SetAddress(&zVertex);
-    bMult->SetAddress(&multi);
-    bHitsL1->SetAddress(&ptrHitsL1);
-    bHitsL2->SetAddress(&ptrHitsL2);
+    treeIn->SetBranchAddress("eventID", &evIDptr);
+    treeIn->SetBranchAddress("zVertex", &zVertex);
+    treeIn->SetBranchAddress("Mult", &multi);
+    treeIn->SetBranchAddress("HitsL1", &ptrHitsL1);
+    treeIn->SetBranchAddress("HitsL2", &ptrHitsL2);
 
+    
     // Generazione nuovo Tree
-    TTree *treeOut = new TTree("TOUT","TTree con 4 branches");
+    TTree *treeOut = new TTree("TOUT","TTree con 5 branches");
     treeOut->SetDirectory(&hfile2);
-    // Dichiarazione dei 4 branch del TTree
+    // Dichiarazione dei 5 branch del TTree
+    treeOut->Branch("eventID", &evID);
     treeOut->Branch("zVertex", &zVertex);
     treeOut->Branch("Mult", &multi);
     treeOut->Branch("HitsL1", &ptrHitsL1);
     treeOut->Branch("HitsL2", &ptrHitsL2);
 
     // Variabili di comodo
-    double muNoise1, muNoise2;
+    int muNoise1, muNoise2;
     int size1, size2;
     pHit* pointL1;
     pHit* pointL2;
+    
     TClonesArray &hits1 = *ptrHitsL1;
     TClonesArray &hits2 = *ptrHitsL2;
 
@@ -67,9 +73,11 @@ void Smearing() {
     for(int ev=0; ev<treeIn->GetEntries(); ev++){
 
         treeIn->GetEvent(ev);
-        cout << "EVENTO NUMERO: " << ev << endl;
-        cout << "\nzVertex = " << zVertex << endl;
-        cout << "multi = " << multi << endl << endl;
+        evID = *evIDptr;
+
+        // cout << "EVENTO: " << evID.Data() << endl;
+        // cout << "\nzVertex = " << zVertex << endl;
+        // cout << "multi = " << multi << endl << endl;
 
         size1 = ptrHitsL1->GetEntriesFast();
         for (int i = 0; i < size1; i++) {
@@ -83,19 +91,24 @@ void Smearing() {
             PointSmearing(pointL2);
         }
         
-        muNoise1 = gRandom->Poisson(5);
+        muNoise1 = gRandom->Poisson(kMeanNoise);
         noiseCountL1 += muNoise1;
-        muNoise2 = gRandom->Poisson(5);
+        muNoise2 = gRandom->Poisson(kMeanNoise);
         noiseCountL2 += muNoise2;
-        Noise(hits1, size1, muNoise1, Layer::L1, ev);
-        Noise(hits2, size2, muNoise2, Layer::L2, ev);
-        
+
+        if (muNoise1 > 0){
+            Noise(hits1, muNoise1, Layer::L1, evID);
+        }
+        if (muNoise2 > 0){
+            Noise(hits2, muNoise2, Layer::L2, evID);
+        }
+
         treeOut->Fill();
 
     }
 
-    cout << "PUNTI DI NOISE CREATI SU L1: " << noiseCountL1 << endl;
-    cout << "PUNTI DI NOISE CREATI SU L2: " << noiseCountL2 << endl;
+    // cout << "PUNTI DI NOISE CREATI SU L1: " << noiseCountL1 << endl;
+    // cout << "PUNTI DI NOISE CREATI SU L2: " << noiseCountL2 << endl;
 
     hfile2.Write();
     hfile1.Close();
@@ -116,16 +129,14 @@ void PointSmearing(pHit* hit) {
 
 }
 
-void Noise(TClonesArray &hits, double size, double muNoise, Layer lay, double event) {
+void Noise(TClonesArray &hits, int muNoise, Layer lay, TString eventID) {
     
     for (int i = 0; i<muNoise; i++) {
-        double x = 0.0;
-        double y = 0.0;
-        double z = 0.0;
-        new(hits[size+i]) pHit(x, y, z, lay, -i, event);
-        pHit* hit = (pHit* ) hits[size+i];
-        hit->SetZ(gRandom->Uniform(-135,135));
-        hit->SetPhi(gRandom->Uniform(0,2*acos(-1)));
+        double phi = gRandom->Uniform(0,2*acos(-1));
+        double z = gRandom->Uniform(-135,135);
+
+        int memPos = hits.GetEntriesFast();
+        new(hits[memPos]) pHit(z, phi, lay, -i, eventID);
     }
 
 }

@@ -7,15 +7,18 @@
 #include "TMath.h"
 #include "TLine.h"
 #include "pEvent.h"
+#include "TROOT.h"
 #include "TClonesArray.h"
 #include "Riostream.h"
 #include "TRandom3.h"
 #include "TH1F.h"
 
-double kwSize = 20;
+const double kwSize = 1;
+const double kPhiWindow = 0.15;
+const bool shouldDraw = false;
 
 double TrovaTracklet(pHit* h1, pHit* h2);
-void RunningWindow(TH1D* histo, double wSize, double *ptrZ);
+void RunningWindow(TH1D* histo, double wSize, double &zRec, int &flag);
 
 void Reconstruction(){
 
@@ -24,6 +27,8 @@ void Reconstruction(){
     cout << "----------------------------------" << endl << endl;
 
     // Dichiarazione oggetti in cui salvare dati dal tree in input
+    TString evID; 
+    TString* evIDptr = 0;
     double zVertex;
     int multi;
     TClonesArray* ptrHitsL1 = new TClonesArray("pHit", 100);
@@ -42,43 +47,41 @@ void Reconstruction(){
     
     // Lettura TTree  e branch
     TTree *tree = (TTree*) infile.Get("T");             //da cambiare col nome del tree smeared
-    TBranch *bZVert = tree->GetBranch("zVertex");
-    TBranch *bMult = tree->GetBranch("Mult");
-    TBranch *bHitsL1 = tree->GetBranch("HitsL1");
-    TBranch *bHitsL2 = tree->GetBranch("HitsL2");
   
     // Definizione degli indirizzi per la lettura dei dati su ttree
-    bZVert->SetAddress(&zVertex);
-    bMult->SetAddress(&multi);
-    bHitsL1->SetAddress(&ptrHitsL1);
-    bHitsL2->SetAddress(&ptrHitsL2);
+    tree->SetBranchAddress("eventID", &evIDptr);
+    tree->SetBranchAddress("zVertex", &zVertex);
+    tree->SetBranchAddress("Mult", &multi);
+    tree->SetBranchAddress("HitsL1", &ptrHitsL1);
+    tree->SetBranchAddress("HitsL2", &ptrHitsL2);
 
     //puntatori a hit a cui voglio accedere
-    static pHit* hitL1;
-    static pHit* hitL2; 
+    pHit* hitL1;
+    pHit* hitL2; 
 
     //parametri di ricostruzione
-    double dPhi = 0.15;
+    double dPhi = kPhiWindow;
+    double initialGuess = 0;
     const double sigma = 53;
 
     //variabili utili alla ricostruzione (in histo salvo le z_tracklet su cui poi faccio l'analisi con running window)
-    TH1D* histoTrack = new TH1D("histo", "Istrogramma di analisi", 100, -4*sigma, 4*sigma); //non considero le z oltre 4 sigma
-    static double ptrZRec[2]; //qui salvo in posizione 0 la FLAG e in posizione 1 la zRec
+    TH1D* histoTrack = new TH1D("histo", "Istrogramma di analisi", 100000, -5*sigma, 5*sigma); //non considero le z oltre 5 sigma
+
     double zRec;
     int flag; //per capire se l'evento è stato ricostruito o no
 
     // se non sono riuscito a ricsotruire il vertice uso una flag 0 e zRec messo a un valore standard
 
     //Canvas per debug
-    TCanvas *c = new TCanvas("c1", "Canvas debug");
+    TCanvas *c = new TCanvas("cDeb", "Canvas debug");
     int countRec = 0;
-    int nonREC[20];
+    vector <TString> nonREC;
 
     // loop sugli ingressi nel TTree per costruire TRACKLET e VERTEX REC
     for(int ev=0; ev<tree->GetEntries(); ev++){
 
         tree->GetEvent(ev);
-        cout << "\nEVENTO NUMERO = " << ev << endl << endl;
+        //cout << "\nEVENTO " << evIDptr->Data() << endl << endl;
         
         int nEntriesL1 = ptrHitsL1->GetEntriesFast();
         int nEntriesL2 = ptrHitsL2->GetEntriesFast();
@@ -100,43 +103,50 @@ void Reconstruction(){
 
                 }
             }
-            RunningWindow(histoTrack, kwSize, ptrZRec);
+            RunningWindow(histoTrack, kwSize, zRec, flag);
         }
         else {
-            ptrZRec[0] = 0.;
-            ptrZRec[1] = 2000.;
+            //cout << "Nessuna entry sui layer" << endl;  
+            flag = 0;
+            zRec = 2000.;
         }
         
-        gStyle->SetOptStat(11111111);
-        histoTrack->Draw();
-        TLine* lzTrue = new TLine(zVertex, 0, zVertex, 1.1*histoTrack->GetMaximum());
-        lzTrue->SetLineColor(kBlue);
-        lzTrue->Draw("same");
-        if (ptrZRec[0] == 1.){
-            countRec += 1;
-            TLine* lzRec = new TLine(ptrZRec[1], 0, ptrZRec[1], 1.1*histoTrack->GetMaximum());
-            lzRec->SetLineColor(kRed);
-            lzRec->Draw("same");
+        if (shouldDraw && !flag){
+            gStyle->SetOptStat(11111111);
+            histoTrack->SetTitle(Form("Evento con molt %d, nEntriesL1 %d, nEntriesL2 %d", multi, nEntriesL1, nEntriesL2));
+            histoTrack->GetXaxis()->SetRangeUser(zVertex-1, zVertex+1);
+            histoTrack->Draw();
+            TLine* lzTrue = new TLine(zVertex, 0, zVertex, 1.1*histoTrack->GetMaximum());
+            lzTrue->SetLineColor(kBlue);
+            lzTrue->Draw("same");
+            if (flag){
+                TLine* lzRec = new TLine(zRec, 0, zRec, 1.1*histoTrack->GetMaximum());
+                lzRec->SetLineColor(kRed);
+                lzRec->Draw("same");
+            }
+            TString nomeFile = "./images/canvas_" + *evIDptr + ".jpg";
+            c->SaveAs(nomeFile.Data());
 
         }
-        else{
-            nonREC[ev-countRec] = ev;
+
+        if (flag) {
+            countRec += 1;
         }
-        char testo[80];
-        sprintf(testo, "./canvas_ev%i.jpg", ev);
-        c->SaveAs(testo);
-        
-        flag = ptrZRec[0];
-        zRec = ptrZRec[1];
+        else
+        {
+            nonREC.push_back(*evIDptr);
+        }
 
         ntuple->Fill(flag, zRec, zVertex, multi);
         histoTrack->Reset(); //per riutilizzare lo stesso istogramma
+        histoTrack->GetXaxis()->UnZoom();
     }
 
-    cout << "\n EVENTI NON RICOSTRUITI: " << endl;
-    for (auto evNON : nonREC){
-        cout << evNON << endl;
-    }
+    // cout << "\n EVENTI NON RICOSTRUITI: " << endl;
+
+    // for (auto evNON : nonREC){
+    //     cout << evNON << endl;
+    // }
 
     cout << "\n EVENTI RICOSTRUITI: " << countRec << endl;
     cout << "EVENTI TOTALI: " << tree->GetEntries() << endl << endl;
@@ -161,15 +171,16 @@ double TrovaTracklet(pHit *h1, pHit *h2)
     return q;
 }
 
-void RunningWindow(TH1D *histo, double wSize, double* ptrZ)
+void RunningWindow(TH1D* histo, double wSize, double &zRec, int &flag)
 {
     //passaggio da larghezza della running window in mm a larghezza in numero di bin
     double binSize = histo->GetBinWidth(1); 
-    int wWidth = (int) wSize / binSize;
+    int wWidth = (int) (wSize / binSize);
 
     // inizializzazione delle variabili di comodo
     bool maxFound = true;
-    double partialSum = histo->Integral(1, wWidth);
+    double initial = 1;//histo->GetXaxis()->FindBin(guess) - wWidth;
+    double partialSum = histo->Integral(initial, initial + wWidth - 1 );
     double max = partialSum;
     int binMax = wWidth; // qui viene salvato il bin dx della running window in cui c'è il max
     int extension = 0;  // con questa variabile vedo se estendere la running window
@@ -180,7 +191,7 @@ void RunningWindow(TH1D *histo, double wSize, double* ptrZ)
 
     //gestione di istogrammi a una entries
     if (histo->Integral() > 1){
-        for (int i=wWidth+1; i<=nbins; i++){
+        for (int i=initial+wWidth; i<=nbins; i++){
             // tolgo il valore di un bin e ne aggiungo uno alla fine
             partialSum = partialSum + histo->GetBinContent(i) - histo->GetBinContent(i-wWidth);
     
@@ -191,12 +202,13 @@ void RunningWindow(TH1D *histo, double wSize, double* ptrZ)
                 extension = 0;
 
             }
-            else if (partialSum == max && i-binMax <= wWidth){
-                binMax = i;
-                extension += 1;
-                maxFound = true;
-            }
-            else if (abs(partialSum-max) <= 1 && i-binMax > wWidth){
+            // else if (partialSum == max && i-binMax <= wWidth){
+            //     binMax = i;
+            //     extension += 1;
+            //     // cout << "ho usato l'estensione" << endl;
+            //     maxFound = true;
+            // }
+            else if (partialSum-max == 0 && i-binMax > wWidth){
                 maxFound = false;
             }
         }
@@ -215,13 +227,13 @@ void RunningWindow(TH1D *histo, double wSize, double* ptrZ)
             rslt += histo->GetBinContent(binMax-j) * histo->GetBinCenter(binMax-j);
         }
         rslt = rslt / (histo->Integral(binMax-wWidth-extension, binMax));
-        ptrZ[0] = 1.;
-        ptrZ[1] = rslt;       
+        flag = 1;
+        zRec = rslt;       
     }
     else{
-        cout << "EVENTO NON RICOSTRUITO" << endl;
-        ptrZ[0] = 0.;
-        ptrZ[1] = 2000.0;   
+        // cout << "EVENTO NON RICOSTRUITO" << endl;
+        flag = 0;
+        zRec = 2000.0;   
     }
     
 }

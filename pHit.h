@@ -3,14 +3,15 @@
 
 #include "pPoint.h"
 #include "Riostream.h"
-using std::string;
+#include "TString.h"
 
 class pHit : public pPoint {
 
     public:
 
         pHit();
-        pHit(double x, double y, double z, Layer layer, int index, int count);
+        pHit(pPoint* pto, Layer layer, int numPart, TString evID);
+        pHit(double z, double phi, Layer layer, int numPart, TString evID);
         pHit(const pHit& source);
         void operator=(const pHit& source);//assignment operator
         virtual ~pHit();
@@ -19,11 +20,16 @@ class pHit : public pPoint {
         void SetPhi(double phi);
         double GetR();
         Layer GetLayer() const {return fLayer;}
-        double GetPhi() const;
+        double GetPhi() const { return fPhi;}
 
     private:
 
-        string fId;
+        //dichiarati private così che non si possa settare direttamente la X e la Y quando si ha un oggetto hit
+        using pPoint::SetX;
+        using pPoint::SetY;
+
+        TString fId;
+        double fPhi; //info aggiuntiva per avere coordinate cilindriche
         Layer fLayer;
 
     ClassDef(pHit,1);

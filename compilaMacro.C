@@ -18,9 +18,9 @@ void compilaMacro(TString myopt="fast"){
   gSystem->CompileMacro("Smearing.C",opt.Data());
   gSystem->CompileMacro("Reconstruction.C",opt.Data());
   gSystem->CompileMacro("Efficiency.C",opt.Data());
-  /*gROOT->ProcessLine("Simulation();");
+  gROOT->ProcessLine("Simulation();");
   gROOT->ProcessLine("Smearing();");
   gROOT->ProcessLine("Reconstruction();");
-  gROOT->ProcessLine("Efficiency();");*/
+  gROOT->ProcessLine("Efficiency();");
 
 }

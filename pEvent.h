@@ -14,7 +14,7 @@ class pEvent : public TObject {
 
 	public:
 		pEvent();//default constructor
-		pEvent(pPoint *vert, int mult);//standard constructor
+		pEvent(pPoint *vert, int mult, int eventCounter);//standard constructor
 		virtual ~pEvent();//destructor
 		
 		//setter
@@ -22,6 +22,7 @@ class pEvent : public TObject {
 		void SetVertex(pPoint* punto) { fVertex = punto;};
 
 		//getter
+		TString GetEventID() const { return feventID;}
 		int GetMultiplicity() const { return fM; };
 		pPoint* GetVertex() const { return fVertex; };
 		double GetZVertex() const { return fVertex->GetZ(); };
@@ -30,7 +31,7 @@ class pEvent : public TObject {
 		static TClonesArray* GetPtrHitsL2() { return fHitsL2; };
 
 		//funzione di trasporto
-		static pPoint* Trasporto(pPoint* pIniz, double* c, Layer lay, int index);
+		bool Trasporto(pPoint* pIniz, double* c, Layer lay, int index);
 
 		
 		//funzione di cleaning
@@ -48,12 +49,12 @@ class pEvent : public TObject {
 		// data members
 		
 		//contatori
-		static int fCounter;//per contare il numero dell'evento
 		static int fRegisteredL1;//per contare gli eventi registrati su L1
 		static int fRegisteredL2;//per contare gli eventi registrati su L2
 
 		int fM;// Molteplicità di particelle
 		pPoint* fVertex;// Puntatore al vertice
+		TString feventID; //ID dell'evento
 
 		//array che conterranno le hits
 		static TClonesArray *fHitsBP; //->

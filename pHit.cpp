@@ -1,23 +1,37 @@
 #include "pHit.h"
 #include "TMath.h"
-using std::to_string;
-using TMath::ATan;
+using TMath::ATan2;
+using TMath::Pi;
 
 ClassImp(pHit)
 
 // Default constructor
-pHit::pHit(): pPoint(), fId(), fLayer()  {
+pHit::pHit(): pPoint(), fId(), fLayer(), fPhi()  {
 
 }
 
-// Standard constructor
-pHit::pHit(double x, double y, double z, Layer layer, int index, int count): pPoint(x,y,z), fLayer(layer) {
-    fId = "e" + to_string(count) + "-p" + to_string(index);
+pHit::pHit(pPoint *pto, Layer layer, int numPart, TString evID): pPoint(*pto), fLayer(layer)
+{
+    fId = evID + Form("-p%d", numPart);
+    fPhi = ATan2(GetY(), GetX()); //tra -pi e pi
+    // porta di nuovo tra 0 e 2*pi (per comodità)
+    if (fPhi < 0){
+        fPhi = fPhi + 2*Pi();
+    }
+
+}
+
+pHit::pHit(double z, double phi, Layer layer, int numPart, TString evID): pPoint(), fLayer(layer), fPhi(phi)
+{
+    fId = evID + Form("-p%d", numPart);
+    double r = GetR();
+    SetX(r*cos(phi));
+    SetY(r*sin(phi));
+    SetZ(z); 
 }
 
 // Copy constructor
-pHit::pHit(const pHit &source): pPoint(source), fId(source.fId), fLayer(source.fLayer) {
-
+pHit::pHit(const pHit &source): pPoint(source), fId(source.fId), fLayer(source.fLayer), fPhi(source.fPhi) {
 }
 
 void pHit::operator=(const pHit &source)
@@ -26,6 +40,7 @@ void pHit::operator=(const pHit &source)
     pPoint::operator=(source);
     fId = source.fId;
     fLayer = source.fLayer;
+    fPhi = source.fPhi;
   }
 }
 
@@ -36,6 +51,7 @@ pHit::~pHit() {
 
 void pHit::SetPhi(double phi)
 {
+    fPhi = phi;
     static double r = 0.0;
     r = GetR();
     SetX(r*cos(phi));
@@ -58,7 +74,7 @@ double pHit::GetR()
     return R;
 }
 
-double pHit::GetPhi() const
-{
-    return ATan(GetY()/GetX());
-}
+// double pHit::GetPhi() const
+// {
+//     return ATan(GetY()/GetX());
+// }
