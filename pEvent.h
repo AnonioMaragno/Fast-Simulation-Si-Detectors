@@ -27,6 +27,7 @@ class pEvent : public TObject {
 		pPoint* GetVertex() const { return fVertex; };
 		double GetZVertex() const { return fVertex->GetZ(); };
 		
+		static TClonesArray* GetPtrHitsBP() { return fHitsBP; }; // Serve per Event Display
 		static TClonesArray* GetPtrHitsL1() { return fHitsL1; };
 		static TClonesArray* GetPtrHitsL2() { return fHitsL2; };
 

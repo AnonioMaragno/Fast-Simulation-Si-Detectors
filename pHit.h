@@ -21,6 +21,7 @@ class pHit : public pPoint {
         double GetR();
         Layer GetLayer() const {return fLayer;}
         double GetPhi() const { return fPhi;}
+        TString GetId() const { return fId; }  // Serve per Event Display
 
     private:
 
