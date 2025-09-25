@@ -96,6 +96,14 @@ void Efficiency() {
     dg->SetParameters(hRes->GetMaximum(), 0.85, 0, 0.5*hRes->GetRMS(), 1.5*hRes->GetRMS());
     hRes->Fit(dg, "RQ+");
     hRes->Write();
+    double weight = dg->GetParameter(1);
+    double sCore = dg->GetParameter(3);
+    double sTail = dg->GetParameter(4);
+    double resolution = sqrt(sCore*sCore*weight + sTail*sTail*(1-weight));
+
+
+    cout << " RMS: "<< hRes->GetRMS() << " resol.: " << resolution << endl;
+
     
 
     // Per intervalli di molteplicità
@@ -127,7 +135,7 @@ void Efficiency() {
         double sCore = dg->GetParameter(3);
         double sTail = dg->GetParameter(4);
         resolutionMult[i] = sqrt(sCore*sCore*weight + sTail*sTail*(1-weight));
-        cout << "multi: " << nMult[i] << " resol.: " << resolutionMult[i] << endl;
+        cout << "multi: " << nMult[i] << " RMS: "<< hResMult[i]->GetRMS() << " resol.: " << resolutionMult[i] << endl;
         //errResolutionMult[i] = dg->GetParError(2);
     }
 
@@ -161,6 +169,9 @@ void Efficiency() {
     gEffMult->Draw("ALP");
     gEffMult->Write();
 
+    cEffMult->Close();
+
+
     // Risoluzione vs molteplicità
     // TF1 *fResMult[12];
     // double resolutionMult[12];
@@ -173,8 +184,8 @@ void Efficiency() {
     //     resolutionMult[i] = fResMult[i]->GetParameter(2);
     //     errResolutionMult[i] = fResMult[i]->GetParError(2);
     // }
-    // TGraph *gResolMult = new TGraph(12, multArray, resolutionMult);
-    // gResolMult->Write();
+    TGraph *gResolMult = new TGraph(12, multArray, resolutionMult);
+    gResolMult->Write();
 
     // Efficienza vs zTrue
     double nZTrue[] = {-175, -125, -75, -37.5, -12.5, 12.5, 37.5, 75, 125, 175};
@@ -216,6 +227,8 @@ void Efficiency() {
     gEffZTrue->SetMarkerColor(kRed);
     gEffZTrue->Draw("ALP");
     gEffZTrue->Write();
+
+    cEffZTrue->Close();
 
     // // Risoluzione vs zTrue
     // TF1 *fResZTrue[10];

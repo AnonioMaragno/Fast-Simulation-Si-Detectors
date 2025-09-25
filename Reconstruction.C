@@ -13,14 +13,14 @@
 #include "TRandom3.h"
 #include "TH1F.h"
 
-const double kwSize = 1;
-const double kPhiWindow = 0.15;
+// const double kwSize = 1;
+// const double kPhiWindow = 0.15;
 const bool shouldDraw = false;
 
 double TrovaTracklet(pHit* h1, pHit* h2);
 void RunningWindow(TH1D* histo, double wSize, double &zRec, int &flag);
 
-void Reconstruction(){
+void Reconstruction(const double kwSize = 1, const double kPhiWindow = 0.15){
 
     cout << "----------------------------------" << endl;
     cout << "-------- RECONSTRUCTION --------------" << endl;
@@ -150,6 +150,7 @@ void Reconstruction(){
 
     cout << "\n EVENTI RICOSTRUITI: " << countRec << endl;
     cout << "EVENTI TOTALI: " << tree->GetEntries() << endl << endl;
+    cout << "Efficienza tot.: " << ((double) countRec)/((double) tree->GetEntries()) << endl;
 
     c->Close();
     ntuple->Write();
