@@ -2,62 +2,57 @@
 
 ClassImp(pEvent)
 
-// contatore per vedere il numero dell'evento (per debug)
-int pEvent::fCounter = 0;
-
-//contatori di registrazione eventi
-int pEvent::fRegisteredL1 = 0;
-int pEvent::fRegisteredL2 = 0;
-
-
 //array che conterranno le hit
 TClonesArray* pEvent::fHitsBP = new TClonesArray("pHit", 100);
 TClonesArray* pEvent::fHitsL1 = new TClonesArray("pHit", 100);
 TClonesArray* pEvent::fHitsL2 = new TClonesArray("pHit", 100);
 
 
-
 // Default Constructor
 // metto molteplicità a zero, vertice a (0,0,0) 
 pEvent::pEvent(): TObject(),
 fM(0){
-    pPoint *pto = new pPoint(0., 0., 0.);
+    pPoint *pto = new pPoint();
     SetVertex(pto);
-    fCounter += 1;
+    feventID = "eInd";
 }
 
 // Standard Constructor
 // metto molteplicità a mult, vertice a (x,y,z) 
-pEvent::pEvent(pPoint *vert, int mult): TObject(),
+pEvent::pEvent(pPoint *vert, int mult, int eventCounter): TObject(),
 fM(mult){
-    SetVertex(vert);
-    fCounter += 1;
+    pPoint *pto = new pPoint(*vert);
+    SetVertex(pto);
+    feventID = Form("e%d", eventCounter);
 }
 
+
+// ------- not used -------
 pEvent::pEvent(const pEvent& source): 
 TObject(source),
 fVertex(source.fVertex),
-fM(source.fM){
-    
-
+fM(source.fM),
+feventID(source.feventID){
 }
 
 // distruttore
 pEvent::~pEvent()
 {    
     //libera memoria
-    fVertex = nullptr; //si occupa già il programma di simulazione liberare la memoria heap
+    delete fVertex;
+    fVertex = nullptr;
     fHitsL1->Clear();
     fHitsL2->Clear();
-    fRegisteredL1 = 0;
-    fRegisteredL2 = 0;
 }
 
 
 
 // Trasporto della particella da un punto iniziale ad un layer (c -> coseni direttori)
-pPoint* pEvent::Trasporto(pPoint* pIniz, double* c, Layer lay, int index)
+bool pEvent::Trasporto(pPoint* pIniz, double* c, Layer lay, int numParticle)
 {
+    
+    bool successFlag = true;
+
     static double t, x0, y0, z0, x, y, z, R, delta, b, sqs;
     //delta, b e sqs servono come variabili ausiliare per snellire la scrittura
     
@@ -65,19 +60,15 @@ pPoint* pEvent::Trasporto(pPoint* pIniz, double* c, Layer lay, int index)
     y0 = pIniz->GetY();
     z0 = pIniz->GetZ();
 
-    static TClonesArray* ptrhits = nullptr;
-    //static pPoint* ptrNewPoint;
-    static int* ptrRegCounter;
+    static TClonesArray* ptrhits;
 
     if (lay == Layer::L1){
         R = 40;
         ptrhits = fHitsL1;
-        ptrRegCounter = &fRegisteredL1;
     }
     else if (lay == Layer::L2){
         R = 70;
         ptrhits = fHitsL2;
-        ptrRegCounter = &fRegisteredL2;
     }
     else{
         R = 30; 
@@ -85,7 +76,8 @@ pPoint* pEvent::Trasporto(pPoint* pIniz, double* c, Layer lay, int index)
     }
 
  
-    TClonesArray &hits = *ptrhits; 
+    TClonesArray &hits = *ptrhits;
+    int memPosition = ptrhits->GetEntriesFast(); //trova il numero di elementi già salvati e usa questo numero per aggiungere un elemento alla fine del TClonesArray
 
     // calcolo di t
     b = x0*c[0] + y0*c[1];
@@ -100,21 +92,16 @@ pPoint* pEvent::Trasporto(pPoint* pIniz, double* c, Layer lay, int index)
 
     //creo la hit se rispetto la condizione di essere nel rivelatore
     if ( lay == Layer::BP ){
-        new (hits[index]) pHit(x,y,z,lay,index,fCounter);
-        
-        pIniz->~pPoint();
-        new (pIniz) pPoint(x,y,z);
+        pIniz->SetCoord(x,y,z);
+        new (hits[memPosition]) pHit(pIniz,lay,numParticle,feventID);   
     }
     else if (z<135 && z>-135){
-        new (hits[*ptrRegCounter]) pHit(x,y,z,lay,index,fCounter);
-        *ptrRegCounter += 1;
-        pIniz->~pPoint();
-        new (pIniz) pPoint(x,y,z);
+        pIniz->SetCoord(x,y,z);
+        new (hits[memPosition]) pHit(pIniz,lay,numParticle,feventID);
     }
     else{
-        pIniz->~pPoint();
-        pIniz = nullptr;
+        successFlag = false;
     }
 
-    return pIniz;
+    return successFlag;
 }

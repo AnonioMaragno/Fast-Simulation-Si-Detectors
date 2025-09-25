@@ -38,8 +38,8 @@ void Efficiency() {
     // Variabili ausiliarie
     const double zMin = -200;
     const double zMax = 200;
-    const double residMin = -30;
-    const double residMax = 30;
+    const double residMin = -0.4;
+    const double residMax = 0.4;
     const int multMin = 0;
     const int multMax = 70;
 
@@ -53,8 +53,8 @@ void Efficiency() {
         snprintf(title,50,"Risoluzione con molteplicità %d",smm[i]);
         vHist[i] = new TH1D(name, title, 100, residMin, residMax);
     }*/
-    TH2D *histo1 = new TH2D("hist1", "Histogram 1", 71, multMin-0.5, multMax+0.5, 427, residMin-0.5, residMax+0.5);
-    TH2D *histo2 = new TH2D("hist2", "Histogram 2", 200, zMin, zMax, 427, residMin-0.5, residMax+0.5);
+    TH2D *histo1 = new TH2D("hist1", "Histogram 1", 71, multMin-0.5, multMax+0.5, 200, residMin, residMax);
+    TH2D *histo2 = new TH2D("hist2", "Histogram 2", 200, zMin, zMax, 200, residMin, residMax);
     double resid;
 
     for(int ev=0; ev<ntuple->GetEntries(); ev++){
@@ -84,26 +84,25 @@ void Efficiency() {
     histo1->Write();
     histo2->Write();
 
+    // funzione di fit
+    TF1* dg = new TF1("dg", "[0]*([1]*exp(-0.5*((x-[2])/[3])*((x-[2])/[3])) + (1-[1])*exp(-0.5*((x-[2])/[4])*((x-[2])/[4])))", -0.5, 0.5); 
+    
     // RESIDUI
     // Per qualsiasi molteplicità
+    TCanvas *c1 = new TCanvas("c1", "c1", 0, 1, 600, 400);
+    c1->cd();
     TH1D *hRes = histo1->ProjectionY("hRes");
     hRes->SetTitle("Residui");
+    dg->SetParameters(hRes->GetMaximum(), 0.85, 0, 0.5*hRes->GetRMS(), 1.5*hRes->GetRMS());
+    hRes->Fit(dg, "RQ+");
     hRes->Write();
-    // // Per ciascun valore di molteplicità
-    // TH1D *hResMult1[68];
-    // char nameResMult1[80];
-    // char titleResMult1[100];
-    // for(int i=3; i<71; i++) {
-    //     sprintf(nameResMult1, "hRM%i", i);
-    //     sprintf(titleResMult1, "Residui con molteplicità %i", i);
-    //     hResMult1[i] = histo1->ProjectionY(nameResMult1, histo1->GetXaxis()->FindBin(i-0.499), histo1->GetXaxis()->FindBin(i+0.499));
-    //     hResMult1[i]->SetTitle(titleResMult1);
-    //     hResMult1[i]->Write();
-    // }
+    
 
     // Per intervalli di molteplicità
     int nMult[] = {3, 4, 5, 7, 10, 13, 19, 28, 37, 46, 55, 64};
     TH1D *hResMult[12];
+    double resolutionMult[12];
+    double errResolutionMult[12];
     char name[80];
     char title[100];
     for(int i=0; i<12; i++) {
@@ -111,22 +110,28 @@ void Efficiency() {
             sprintf(name, "hResMult%i", nMult[i]);
             sprintf(title, "Residui con molteplicità %i +/- 0.5", nMult[i]);
             hResMult[i] = histo1->ProjectionY(name, histo1->GetXaxis()->FindBin(nMult[i]-0.499), histo1->GetXaxis()->FindBin(nMult[i]+0.499));
-            hResMult[i]->SetTitle(title);
-            hResMult[i]->Write();
         } else if(nMult[i] > 6 && nMult[i] < 14) {
             sprintf(name, "hResMult%i", nMult[i]);
             sprintf(title, "Residui con molteplicità %i +/- 1.5", nMult[i]);
             hResMult[i] = histo1->ProjectionY(name, histo1->GetXaxis()->FindBin(nMult[i]-1.499), histo1->GetXaxis()->FindBin(nMult[i]+1.499));
-            hResMult[i]->SetTitle(title);
-            hResMult[i]->Write();
         } else {
             sprintf(name, "hResMult%i", nMult[i]);
             sprintf(title, "Residui con molteplicità %i +/- 4.5", nMult[i]);
             hResMult[i] = histo1->ProjectionY(name, histo1->GetXaxis()->FindBin(nMult[i]-4.499), histo1->GetXaxis()->FindBin(nMult[i]+4.499));
-            hResMult[i]->SetTitle(title);
-            hResMult[i]->Write();
         }
+        hResMult[i]->SetTitle(title);
+        dg->SetParameters(hResMult[i]->GetMaximum(), 0.7, 0, 0.5*hResMult[i]->GetRMS(), 1.5*hResMult[i]->GetRMS());
+        hResMult[i]->Fit(dg, "RQ+");
+        hResMult[i]->Write();
+        double weight = dg->GetParameter(1);
+        double sCore = dg->GetParameter(3);
+        double sTail = dg->GetParameter(4);
+        resolutionMult[i] = sqrt(sCore*sCore*weight + sTail*sTail*(1-weight));
+        cout << "multi: " << nMult[i] << " resol.: " << resolutionMult[i] << endl;
+        //errResolutionMult[i] = dg->GetParError(2);
     }
+
+    c1->Close();
 
     // Efficienza vs molteplicità
     double effMult[12];
@@ -157,19 +162,19 @@ void Efficiency() {
     gEffMult->Write();
 
     // Risoluzione vs molteplicità
-    TF1 *fResMult[12];
-    double resolutionMult[12];
-    double errResolutionMult[12];
-    for (int i = 0; i<12; i++) {
-        sprintf(name, "fResMult%i", nMult[i]);
-        fResMult[i] = new TF1(name, "gaus", -5, 5);
-        fResMult[i]->SetParameters(hResMult[i]->GetEntries()/25, 0, 1.5);
-        hResMult[i]->Fit(fResMult[i], "R+");
-        resolutionMult[i] = fResMult[i]->GetParameter(2);
-        errResolutionMult[i] = fResMult[i]->GetParError(2);
-    }
-    TGraph *gResolMult = new TGraph(12, multArray, resolutionMult);
-    gResolMult->Write();
+    // TF1 *fResMult[12];
+    // double resolutionMult[12];
+    // double errResolutionMult[12];
+    // for (int i = 0; i<12; i++) {
+    //     sprintf(name, "fResMult%i", nMult[i]);
+    //     fResMult[i] = new TF1(name, "gaus", -5, 5);
+    //     fResMult[i]->SetParameters(hResMult[i]->GetEntries()/25, 0, 1.5);
+    //     hResMult[i]->Fit(fResMult[i], "R+");
+    //     resolutionMult[i] = fResMult[i]->GetParameter(2);
+    //     errResolutionMult[i] = fResMult[i]->GetParError(2);
+    // }
+    // TGraph *gResolMult = new TGraph(12, multArray, resolutionMult);
+    // gResolMult->Write();
 
     // Efficienza vs zTrue
     double nZTrue[] = {-175, -125, -75, -37.5, -12.5, 12.5, 37.5, 75, 125, 175};
@@ -231,11 +236,6 @@ void Efficiency() {
 
 
     
-    
-    
-
-
-
 
     fileIn.Close();
     fileOut.Close();

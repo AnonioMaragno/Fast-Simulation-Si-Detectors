@@ -11,32 +11,26 @@ class pPoint : public TObject {
 	public:
 
 		pPoint();
-		pPoint(double x, double y, double z/*, double theta, double phi, double r*/);
+		pPoint(double x, double y, double z);
         pPoint(const pPoint& source);
-        void operator=(const pPoint& source);//assignment operator
+        void operator=(const pPoint& source);
 		virtual ~pPoint();
 		
         double GetX() const {return fX;} 
         double GetY() const {return fY;}
         double GetZ() const {return fZ;}
-        /*double GetTheta() const {return fTheta;}
-        double GetPhi() const {return fPhi;}
-        double GetR() const {return fR;}*/
+
         void SetX(double x) {fX = x;}
         void SetY(double y) {fY = y;}
         void SetZ(double z) {fZ = z;}
-        /*void SetTheta(double theta) {fTheta = theta;}
-        void SetPhi(double phi) {fPhi = phi;}
-        void SetR(double r) {fR = r;}*/
+        void SetCoord(double x, double y, double z);
+        void SetEqualTo(const pPoint &source);
 
 	private:
     
 		double fX;           // Coordinata cartesiana x del vertice
 		double fY;           //    ''          ''     y     ''
 		double fZ;           //    ''          ''     z     ''
-		/*double fR;           // Raggio
-        double fTheta;       // Angolo polare 
-		double fPhi;         // Angolo azimutale*/
 
 	ClassDef(pPoint,1);
 };
