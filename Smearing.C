@@ -10,15 +10,15 @@
 
 using std::string;
 
-const int kMeanNoise = 5;
+// const int kMeanNoise = 5;
 
 void PointSmearing(pHit* hit);
 void Noise(TClonesArray &hits, int muNoise, Layer lay, TString eventID);
 
-void Smearing() {
+void Smearing(const int kMeanNoise = 5) {
 
     cout << "----------------------------------" << endl;
-    cout << "-------- SMEARING --------------" << endl;
+    cout << "-------- SMEARING --------------" << endl;  
     cout << "----------------------------------" << endl << endl;
 
     // Dichiarazione oggetti in cui salvare dati dal tree in input
