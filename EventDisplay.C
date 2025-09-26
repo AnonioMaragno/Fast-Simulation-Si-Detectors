@@ -108,12 +108,12 @@ void DrawEvent(TTree* tree, TString eventID) {
                 for (int j=0; j<event->GetPtrHitsL1()->GetEntriesFast(); j++) {
 
                     hitL1 = (pHit* )event->GetPtrHitsL1()->At(j);
-                    if (hitBP->GetId() == hitL1->GetId()) {
-                        cout << "sono qui " << endl;
+                    if (hitBP->GetId().CompareTo(hitL1->GetId())) {
+                        // cout << "sono qui " << endl;
                         for (int k=0; k<event->GetPtrHitsL2()->GetEntriesFast(); k++) {
 
                             hitL2 = (pHit* )event->GetPtrHitsL2()->At(k);
-                            if (hitL1->GetId() == hitL2->GetId()) {
+                            if (hitL1->GetId().CompareTo(hitL2->GetId())) {
                                 
                                 xL2 = hitL2->GetX();
                                 yL2 = hitL2->GetY();

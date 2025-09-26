@@ -63,6 +63,13 @@ void Simulation() {
     tree->Branch("HitsL1", &ptrHitsL1);
     tree->Branch("HitsL2", &ptrHitsL2);
 
+    // Creazione di un tree per Event Display
+    TFile* outfileED = new TFile("treeEventDisplay.root", "RECREATE");
+    TTree *treeED = new TTree("TreeED","TTree con 2 branch");
+    pEvent* event = nullptr; // per salvare l'evento
+    treeED->Branch("eventID", &eventID);
+    treeED->Branch("Event", "pEvent", &event);
+
     pPoint* vertex = new pPoint();     //qui dichiaro punto generico e poi setto coordinate in generaVertice
     pPoint* tempPoint = new pPoint();    //punto ausiliare per la funzione Trasporto 
 
@@ -98,8 +105,10 @@ void Simulation() {
         
         eventID = ev->GetEventID();
         zVert = ev->GetZVertex();
+        event = ev;
 
         tree -> Fill();
+        treeED->Fill();
 
         delete ev;
         ev = nullptr;
@@ -107,6 +116,8 @@ void Simulation() {
 
     outfile->Write();
     outfile->Close();
+    outfileED->Write();
+    outfileED->Close();
     f->Close();
 
     delete vertex;
