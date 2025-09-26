@@ -47,28 +47,31 @@ void Simulation() {
 
     // Creazione di un tree
     TFile* outfile = new TFile("treeSimulated.root", "RECREATE");
-    TTree *tree = new TTree("T","TTree con 5 branches");
+    TTree *tree = new TTree("T","TTree con 6 branches");
 
     TString eventID; //eventID per debug
     double zVert = 0.0;//per salvare solo z del vertice
     int multi = 0;//molteplicità
     TClonesArray* ptrHitsL1 = pEvent::GetPtrHitsL1(); //per salvare hit  su layer 1
     TClonesArray* ptrHitsL2 = pEvent::GetPtrHitsL2(); //per salvare hit  su layer 2
+    TClonesArray* ptrHitsBP = pEvent::GetPtrHitsBP(); //per salvare hit  su beam pipe, serve per Event Display
+
 
     
-    // Dichiarazione dei 5 branch del TTree
+    // Dichiarazione dei 6 branch del TTree
     tree->Branch("eventID", &eventID);
     tree->Branch("zVertex", &zVert);
     tree->Branch("Mult", &multi);
     tree->Branch("HitsL1", &ptrHitsL1);
     tree->Branch("HitsL2", &ptrHitsL2);
+    tree->Branch("HitsBP", &ptrHitsBP);
 
-    // Creazione di un tree per Event Display
-    TFile* outfileED = new TFile("treeEventDisplay.root", "RECREATE");
-    TTree *treeED = new TTree("TreeED","TTree con 2 branch");
-    pEvent* event = nullptr; // per salvare l'evento
-    treeED->Branch("eventID", &eventID);
-    treeED->Branch("Event", "pEvent", &event);
+    // // Creazione di un tree per Event Display
+    // TFile* outfileED = new TFile("treeEventDisplay.root", "RECREATE");
+    // TTree *treeED = new TTree("TreeED","TTree con 2 branch");
+    // pEvent* event = nullptr; // per salvare l'evento
+    // treeED->Branch("eventID", &eventID);
+    // treeED->Branch("Event", "pEvent", &event);
 
     pPoint* vertex = new pPoint();     //qui dichiaro punto generico e poi setto coordinate in generaVertice
     pPoint* tempPoint = new pPoint();    //punto ausiliare per la funzione Trasporto 
@@ -105,10 +108,10 @@ void Simulation() {
         
         eventID = ev->GetEventID();
         zVert = ev->GetZVertex();
-        event = ev;
+        // event = ev;
 
         tree -> Fill();
-        treeED->Fill();
+        // treeED->Fill();
 
         delete ev;
         ev = nullptr;
@@ -116,8 +119,8 @@ void Simulation() {
 
     outfile->Write();
     outfile->Close();
-    outfileED->Write();
-    outfileED->Close();
+    // outfileED->Write();
+    // outfileED->Close();
     f->Close();
 
     delete vertex;
