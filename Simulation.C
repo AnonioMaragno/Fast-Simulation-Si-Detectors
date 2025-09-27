@@ -12,10 +12,9 @@
 #include "TF1.h"
 #include "pPoint.h"
 
-const int kNoEvents = 10000; //Numero di eventi da simulare
+const int kNoEvents = 1000; //Numero di eventi da simulare
 const bool kFlagMS = false; //Flag per vedere se simulare o no il Multiple scattering 
 const bool kFlagUniform = false; //Flag per vedere se usare una distribuzione uniforme o no per la molteplicità
-
 
 void generaVertice(pPoint* vtx);
 void generaDirezione(TH1F* etaDist, double *cosDir);
@@ -47,7 +46,7 @@ void Simulation() {
 
     // Creazione di un tree
     TFile* outfile = new TFile("treeSimulated.root", "RECREATE");
-    TTree *tree = new TTree("T","TTree con 6 branches");
+    TTree *tree = new TTree("T","TTree con 7 branches");
 
     TString eventID; //eventID per debug
     double zVert = 0.0;//per salvare solo z del vertice
@@ -56,10 +55,13 @@ void Simulation() {
     TClonesArray* ptrHitsL2 = pEvent::GetPtrHitsL2(); //per salvare hit  su layer 2
     TClonesArray* ptrHitsBP = pEvent::GetPtrHitsBP(); //per salvare hit  su beam pipe, serve per Event Display
 
+    pPoint* vertex = new pPoint();     //qui dichiaro punto generico e poi setto coordinate in generaVertice
+    pPoint* tempPoint = new pPoint();    //punto ausiliare per la funzione Trasporto 
 
-    
-    // Dichiarazione dei 6 branch del TTree
+
+    // Dichiarazione dei 7 branch del TTree
     tree->Branch("eventID", &eventID);
+    tree->Branch("vtx", &vertex);
     tree->Branch("zVertex", &zVert);
     tree->Branch("Mult", &multi);
     tree->Branch("HitsL1", &ptrHitsL1);
@@ -72,10 +74,6 @@ void Simulation() {
     // pEvent* event = nullptr; // per salvare l'evento
     // treeED->Branch("eventID", &eventID);
     // treeED->Branch("Event", "pEvent", &event);
-
-    pPoint* vertex = new pPoint();     //qui dichiaro punto generico e poi setto coordinate in generaVertice
-    pPoint* tempPoint = new pPoint();    //punto ausiliare per la funzione Trasporto 
-
 
     double cd[3]; //array che conterrà i coseni direttori  
 
@@ -136,7 +134,7 @@ void generaVertice(pPoint* vtx){
     // Generazione del vertice
     double xVert = 0.; //gRandom->Gaus(0,0.1);
     double yVert = 0.; //gRandom->Gaus(0,0.1);
-    double zVert = gRandom->Gaus(0,53);
+    double zVert = 0.; //gRandom->Gaus(0,53);
 
     vtx->SetCoord(xVert, yVert, zVert);
 }
@@ -147,6 +145,9 @@ void generaDirezione(TH1F* etaDist, double *cosDir){
     double Phi = 2*acos(-1)*(gRandom->Rndm());
     double pseudor = etaDist->GetRandom();
     double Theta = 2*atan(exp(-pseudor));
+
+    //per generare uniformemente in cosTheta
+    //Theta = acos(1 - 2*(gRandom->Rndm()));
 
     //generazione coseni direttori
     cosDir[0] = sin(Theta) * cos(Phi);

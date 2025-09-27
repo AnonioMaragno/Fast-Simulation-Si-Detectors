@@ -41,6 +41,7 @@ pEvent::~pEvent()
     //libera memoria
     delete fVertex;
     fVertex = nullptr;
+    fHitsBP->Clear();
     fHitsL1->Clear();
     fHitsL2->Clear();
 }

@@ -31,8 +31,8 @@ void Reconstruction(const double kwSize = 1, const double kPhiWindow = 0.15){
     TString* evIDptr = 0;
     double zVertex;
     int multi;
-    TClonesArray* ptrHitsL1 = new TClonesArray("pHit", 100);
-    TClonesArray* ptrHitsL2 = new TClonesArray("pHit", 100);
+    TClonesArray* ptrHitsL1 = 0;
+    TClonesArray* ptrHitsL2 = 0;
 
     
     // Apertura file di input
@@ -142,11 +142,11 @@ void Reconstruction(const double kwSize = 1, const double kPhiWindow = 0.15){
         histoTrack->GetXaxis()->UnZoom();
     }
 
-    // cout << "\n EVENTI NON RICOSTRUITI: " << endl;
+    cout << "\n EVENTI NON RICOSTRUITI: " << endl;
 
-    // for (auto evNON : nonREC){
-    //     cout << evNON << endl;
-    // }
+    for (auto evNON : nonREC){
+        cout << evNON << endl;
+    }
 
     cout << "\n EVENTI RICOSTRUITI: " << countRec << endl;
     cout << "EVENTI TOTALI: " << tree->GetEntries() << endl << endl;

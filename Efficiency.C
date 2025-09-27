@@ -53,8 +53,8 @@ void Efficiency() {
         snprintf(title,50,"Risoluzione con molteplicità %d",smm[i]);
         vHist[i] = new TH1D(name, title, 100, residMin, residMax);
     }*/
-    TH2D *histo1 = new TH2D("hist1", "Histogram 1", 71, multMin-0.5, multMax+0.5, 200, residMin, residMax);
-    TH2D *histo2 = new TH2D("hist2", "Histogram 2", 200, zMin, zMax, 200, residMin, residMax);
+    TH2D *histo1 = new TH2D("hist1", "Histogram 1", 71, multMin-0.5, multMax+0.5, 201, residMin, residMax);
+    TH2D *histo2 = new TH2D("hist2", "Histogram 2", 200, zMin, zMax, 201, residMin, residMax);
     double resid;
 
     for(int ev=0; ev<ntuple->GetEntries(); ev++){

@@ -26,8 +26,8 @@ void Smearing(const int kMeanNoise = 5) {
     TString* evIDptr = 0;  
     double zVertex;
     int multi;
-    TClonesArray* ptrHitsL1 = new TClonesArray("pHit", 100);
-    TClonesArray* ptrHitsL2 = new TClonesArray("pHit", 100);
+    TClonesArray* ptrHitsL1 = 0;
+    TClonesArray* ptrHitsL2 = 0;
 
     // Apertura file di input
     TFile hfile1("treeSimulated.root");

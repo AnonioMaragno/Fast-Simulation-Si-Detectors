@@ -37,6 +37,8 @@ class pEvent : public TObject {
 		
 		//funzione di cleaning
 		static void disallocateMemory(){
+			delete fHitsBP;
+			fHitsBP = nullptr;
 			delete fHitsL1;
 			fHitsL1 = nullptr;
 			delete fHitsL2;
