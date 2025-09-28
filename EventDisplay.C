@@ -210,7 +210,7 @@ void DrawEvent(TTree* tree, TString eventID) {
             pHit* hit2 = nullptr;
             
             cout << "Coordinate del vertice = " << "(" << vtx->GetX() << "," << vtx->GetY() << "," << vtx->GetZ() << ")" << endl;
-            cout << "Molteplicità: " << multi << "Entries su BP,L1 e L2: " << ptrHitsBP->GetEntriesFast() << "," << ptrHitsL1->GetEntriesFast() << "," << ptrHitsL2->GetEntriesFast() << endl;
+            cout << "Molteplicità: " << multi << ". Entries su BP,L1 e L2: " << ptrHitsBP->GetEntriesFast() << "," << ptrHitsL1->GetEntriesFast() << "," << ptrHitsL2->GetEntriesFast() << endl;
 
             for(int i=0; i<multi; i++){
 
