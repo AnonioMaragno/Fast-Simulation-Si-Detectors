@@ -61,22 +61,18 @@ void Efficiency() {
         
         ntuple->GetEvent(ev);
         // qui zrec contiene il valore corrente di zrec; mult il corrente valore di mult, etc
-        // cout << ev << ") " << "zTrue = " << zTrue << " zRec = " << zRec << endl;
-
-        // Riempio histo1
+        if (mult < 5) {
+            cout << "mult = " << mult << ", zTrue = " << zTrue << ", zRec = " << zRec << endl;    
+        }
+        
+        // Riempio histo1 e histo 2
         resid = zRec - zTrue;
         if (flag == 1) {
             histo1->Fill(mult, resid);
-        }
-        else {
-            histo1->Fill(mult, residMin-1);
-        }
-
-        // Riempio histo2
-        if (flag == 1) {
             histo2->Fill(zTrue, resid);
         }
         else {
+            histo1->Fill(mult, residMin-1);
             histo2->Fill(zTrue, residMin-1);
         }
 

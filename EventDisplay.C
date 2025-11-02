@@ -89,7 +89,7 @@ void DrawGeoProj(){
 TPolyLine3D* CreateTrack(pPoint* pto0, pPoint* pto1) {
 
     TPolyLine3D* track = new TPolyLine3D(2);
-    track->SetPoint(0, pto0->GetX()/10, pto0->GetY()/10, pto0->GetZ()/10);
+    track->SetPoint(0, pto0->GetX()/10, pto0->GetY()/10, pto0->GetZ()/10);   // Converto le coordinate da mm in cm (utilizzati per definire la geometria)
     track->SetPoint(1, pto1->GetX()/10, pto1->GetY()/10, pto1->GetZ()/10);
     track->SetLineColor(kGreen+2);
     track->SetLineWidth(2);
@@ -240,7 +240,7 @@ void DrawEvent(TTree* tree, TString eventID) {
                         hit2 = (pHit*) ptrHits->At(k);
 
                         if (hit2->GetId().CompareTo(particleID) == 0){
-                            TPolyLine3D* track = CreateTrack(hit1, hit2);  // Converto le coordinate da mm in cm (utilizzati per definire la geometria)
+                            TPolyLine3D* track = CreateTrack(hit1, hit2);
                             CreateLines(hit1,hit2);
                             //track->Draw();
                             tracks.push_back(track);
@@ -303,7 +303,7 @@ void DrawEvent(TTree* tree, TString eventID) {
 // }
 
 // Funzione principale
-void EventDisplay(TString ev = "e2", const char* filename = "treeSimulated.root") {
+void EventDisplay(TString ev = "e1", const char* filename = "treeSimulated.root") {
     
     // Apre il file e il tree
     TFile* file = new TFile(filename);
@@ -334,7 +334,7 @@ void EventDisplay(TString ev = "e2", const char* filename = "treeSimulated.root"
     // prevBtn->Draw();
 
     DrawEvent(tree, ev); // Disegna l'evento richiesto
-
+    cout << "Visualizing ev = " << ev << endl;
     canvas->Close();
    
 }

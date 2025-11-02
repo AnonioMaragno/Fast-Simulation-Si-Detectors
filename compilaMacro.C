@@ -27,6 +27,6 @@ void compilaMacro(TString myopt="fast"){
   gROOT->ProcessLine("Smearing();");
   gROOT->ProcessLine("Reconstruction();");
   gROOT->ProcessLine("Efficiency();");
-  gROOT->ProcessLine("EventDisplay()");
+  // gROOT->ProcessLine("EventDisplay()");
 
 }

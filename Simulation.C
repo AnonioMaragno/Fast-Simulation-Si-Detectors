@@ -12,7 +12,7 @@
 #include "TF1.h"
 #include "pPoint.h"
 
-const int kNoEvents = 1000; //Numero di eventi da simulare
+const int kNoEvents = 10000; //Numero di eventi da simulare
 const bool kFlagMS = false; //Flag per vedere se simulare o no il Multiple scattering 
 const bool kFlagUniform = false; //Flag per vedere se usare una distribuzione uniforme o no per la molteplicità
 
@@ -132,9 +132,9 @@ void Simulation() {
 
 void generaVertice(pPoint* vtx){
     // Generazione del vertice
-    double xVert = 0.; //gRandom->Gaus(0,0.1);
-    double yVert = 0.; //gRandom->Gaus(0,0.1);
-    double zVert = 0.; //gRandom->Gaus(0,53);
+    double xVert = 0; // gRandom->Gaus(0,0.1);
+    double yVert = 0; // gRandom->Gaus(0,0.1);
+    double zVert = 0; // gRandom->Gaus(0,53);
 
     vtx->SetCoord(xVert, yVert, zVert);
 }

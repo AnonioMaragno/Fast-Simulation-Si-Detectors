@@ -20,7 +20,7 @@ const bool shouldDraw = false;
 double TrovaTracklet(pHit* h1, pHit* h2);
 void RunningWindow(TH1D* histo, double wSize, double &zRec, int &flag);
 
-void Reconstruction(const double kwSize = 1, const double kPhiWindow = 0.15){
+void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.05){
 
     cout << "----------------------------------" << endl;
     cout << "-------- RECONSTRUCTION --------------" << endl;
@@ -65,7 +65,7 @@ void Reconstruction(const double kwSize = 1, const double kPhiWindow = 0.15){
     const double sigma = 53;
 
     //variabili utili alla ricostruzione (in histo salvo le z_tracklet su cui poi faccio l'analisi con running window)
-    TH1D* histoTrack = new TH1D("histo", "Istrogramma di analisi", 100000, -5*sigma, 5*sigma); //non considero le z oltre 5 sigma
+    TH1D* histoTrack = new TH1D("histo", "Istrogramma di analisi", 1000001, -5*sigma, 5*sigma); //non considero le z oltre 5 sigma
 
     double zRec;
     int flag; //per capire se l'evento è stato ricostruito o no
@@ -137,7 +137,17 @@ void Reconstruction(const double kwSize = 1, const double kPhiWindow = 0.15){
             nonREC.push_back(*evIDptr);
         }
 
+        // if (multi < 5) {
+        //     cout << "binWidth = " << histoTrack->GetBinWidth(1) << endl;
+        //     cout << "bin center of max bin = " << histoTrack->GetBinCenter(histoTrack->GetMaximumBin()) << endl;
+
+        // }
+        
         ntuple->Fill(flag, zRec, zVertex, multi);
+        // if (ev<5) {
+        //     TH1D* histoCopy = (TH1D*)histoTrack->Clone(Form("histoTrack_event%d", ev));
+        //     histoCopy->Write();
+        // }
         histoTrack->Reset(); //per riutilizzare lo stesso istogramma
         histoTrack->GetXaxis()->UnZoom();
     }
@@ -152,6 +162,7 @@ void Reconstruction(const double kwSize = 1, const double kPhiWindow = 0.15){
     cout << "EVENTI TOTALI: " << tree->GetEntries() << endl << endl;
     cout << "Efficienza tot.: " << ((double) countRec)/((double) tree->GetEntries()) << endl;
 
+    c->Write();
     c->Close();
     ntuple->Write();
 
@@ -180,7 +191,7 @@ void RunningWindow(TH1D* histo, double wSize, double &zRec, int &flag)
 
     // inizializzazione delle variabili di comodo
     bool maxFound = true;
-    double initial = 1;//histo->GetXaxis()->FindBin(guess) - wWidth;
+    double initial = 1; //histo->GetXaxis()->FindBin(guess) - wWidth;
     double partialSum = histo->Integral(initial, initial + wWidth - 1 );
     double max = partialSum;
     int binMax = wWidth; // qui viene salvato il bin dx della running window in cui c'è il max
