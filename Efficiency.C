@@ -61,9 +61,9 @@ void Efficiency() {
         
         ntuple->GetEvent(ev);
         // qui zrec contiene il valore corrente di zrec; mult il corrente valore di mult, etc
-        if (mult < 5) {
-            cout << "mult = " << mult << ", zTrue = " << zTrue << ", zRec = " << zRec << endl;    
-        }
+        // if (mult < 5) {
+        //     cout << "mult = " << mult << ", zTrue = " << zTrue << ", zRec = " << zRec << endl;    
+        // }
         
         // Riempio histo1 e histo 2
         resid = zRec - zTrue;
@@ -131,7 +131,7 @@ void Efficiency() {
         double sCore = dg->GetParameter(3);
         double sTail = dg->GetParameter(4);
         resolutionMult[i] = sqrt(sCore*sCore*weight + sTail*sTail*(1-weight));
-        cout << "multi: " << nMult[i] << " RMS: "<< hResMult[i]->GetRMS() << " resol.: " << resolutionMult[i] << endl;
+        //cout << "multi: " << nMult[i] << " RMS: "<< hResMult[i]->GetRMS() << " resol.: " << resolutionMult[i] << endl;
         //errResolutionMult[i] = dg->GetParError(2);
     }
 

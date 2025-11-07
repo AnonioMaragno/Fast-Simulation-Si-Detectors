@@ -20,7 +20,7 @@ const bool shouldDraw = false;
 double TrovaTracklet(pHit* h1, pHit* h2);
 void RunningWindow(TH1D* histo, double wSize, double &zRec, int &flag);
 
-void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.05){
+void Reconstruction(const double kwSize = 0.1, const double kPhiWindow = 0.05){
 
     cout << "----------------------------------" << endl;
     cout << "-------- RECONSTRUCTION --------------" << endl;
@@ -65,7 +65,7 @@ void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.05){
     const double sigma = 53;
 
     //variabili utili alla ricostruzione (in histo salvo le z_tracklet su cui poi faccio l'analisi con running window)
-    TH1D* histoTrack = new TH1D("histo", "Istrogramma di analisi", 1000001, -5*sigma, 5*sigma); //non considero le z oltre 5 sigma
+    TH1D* histoTrack = new TH1D("histo", "Istrogramma di analisi", 100001, -5*sigma, 5*sigma); //non considero le z oltre 5 sigma
 
     double zRec;
     int flag; //per capire se l'evento è stato ricostruito o no
@@ -79,7 +79,6 @@ void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.05){
 
     // loop sugli ingressi nel TTree per costruire TRACKLET e VERTEX REC
     for(int ev=0; ev<tree->GetEntries(); ev++){
-
         tree->GetEvent(ev);
         //cout << "\nEVENTO " << evIDptr->Data() << endl << endl;
         
@@ -111,7 +110,7 @@ void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.05){
             zRec = 2000.;
         }
         
-        if (shouldDraw && !flag){
+        if (shouldDraw && flag && zRec - zVertex > 0.1){
             gStyle->SetOptStat(11111111);
             histoTrack->SetTitle(Form("Evento con molt %d, nEntriesL1 %d, nEntriesL2 %d", multi, nEntriesL1, nEntriesL2));
             histoTrack->GetXaxis()->SetRangeUser(zVertex-1, zVertex+1);
@@ -162,7 +161,7 @@ void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.05){
     cout << "EVENTI TOTALI: " << tree->GetEntries() << endl << endl;
     cout << "Efficienza tot.: " << ((double) countRec)/((double) tree->GetEntries()) << endl;
 
-    c->Write();
+    //c->Write();
     c->Close();
     ntuple->Write();
 
@@ -191,11 +190,14 @@ void RunningWindow(TH1D* histo, double wSize, double &zRec, int &flag)
 
     // inizializzazione delle variabili di comodo
     bool maxFound = true;
-    double initial = 1; //histo->GetXaxis()->FindBin(guess) - wWidth;
-    double partialSum = histo->Integral(initial, initial + wWidth - 1 );
+    // double initial = 1; //histo->GetXaxis()->FindBin(guess) - wWidth;
+    double partialSum = histo->Integral(1, wWidth);
     double max = partialSum;
-    int binMax = wWidth; // qui viene salvato il bin dx della running window in cui c'è il max
-    int extension = 0;  // con questa variabile vedo se estendere la running window
+    int binMaxSx = 1; // qui viene salvato il bin sx della running window in cui c'è il max
+    int binMaxDx = wWidth; // qui viene salvato il bin dx della running window in cui c'è il max
+    // int extension = 0;  // con questa variabile vedo se estendere la running window
+    // bool extended = false;
+    int totSum;
 
     //-----------ALGORITMO DI RUNNING WINDOW -------------
 
@@ -203,44 +205,46 @@ void RunningWindow(TH1D* histo, double wSize, double &zRec, int &flag)
 
     //gestione di istogrammi a una entries
     if (histo->Integral() > 1){
-        for (int i=initial+wWidth; i<=nbins; i++){
+        for (int i=1+wWidth; i<=nbins; i++){
             // tolgo il valore di un bin e ne aggiungo uno alla fine
             partialSum = partialSum + histo->GetBinContent(i) - histo->GetBinContent(i-wWidth);
     
             if (partialSum > max){
                 max = partialSum;
-                binMax = i;
+                binMaxDx = i;
+                binMaxSx = i - wWidth + 1;
                 maxFound = true;
-                extension = 0;
-
+                // extension = 0;
+                // extended = false;
             }
-            // else if (partialSum == max && i-binMax <= wWidth){
-            //     binMax = i;
-            //     extension += 1;
-            //     // cout << "ho usato l'estensione" << endl;
-            //     maxFound = true;
-            // }
-            else if (partialSum-max == 0 && i-binMax > wWidth){
+            else if (partialSum == max && i-binMaxDx < wWidth){
+                binMaxDx = i;           
+                maxFound = true;
+            }
+            else if (partialSum-max == 0 && i-binMaxDx >= wWidth){
                 maxFound = false;
             }
         }
 
     }
+    else if (histo->Integral() == 0){
+        maxFound = false;
+    }
     else{
         maxFound = true;
-        binMax = histo->GetMaximumBin();
+        binMaxDx = histo->GetMaximumBin();
     }
     
 
     static double rslt;
     if (maxFound){
         rslt = 0.0;
-        for (int j=0; j<(wWidth+extension); j++){
-            rslt += histo->GetBinContent(binMax-j) * histo->GetBinCenter(binMax-j);
+        for (int j=binMaxSx; j<binMaxDx+1; j++){
+            rslt += histo->GetBinContent(j) * histo->GetBinCenter(j);
         }
-        rslt = rslt / (histo->Integral(binMax-wWidth-extension, binMax));
+        rslt = rslt / (histo->Integral(binMaxSx, binMaxDx));
         flag = 1;
-        zRec = rslt;       
+        zRec = rslt;     
     }
     else{
         // cout << "EVENTO NON RICOSTRUITO" << endl;

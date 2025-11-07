@@ -132,9 +132,9 @@ void Simulation() {
 
 void generaVertice(pPoint* vtx){
     // Generazione del vertice
-    double xVert = 0; // gRandom->Gaus(0,0.1);
-    double yVert = 0; // gRandom->Gaus(0,0.1);
-    double zVert = 0; // gRandom->Gaus(0,53);
+    double xVert = gRandom->Gaus(0,0.1);
+    double yVert = gRandom->Gaus(0,0.1);
+    double zVert = gRandom->Gaus(0,53);
 
     vtx->SetCoord(xVert, yVert, zVert);
 }
