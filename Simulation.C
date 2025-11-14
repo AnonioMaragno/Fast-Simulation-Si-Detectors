@@ -12,8 +12,8 @@
 #include "TF1.h"
 #include "pPoint.h"
 
-const int kNoEvents = 10000; //Numero di eventi da simulare
-const bool kFlagMS = false; //Flag per vedere se simulare o no il Multiple scattering 
+const int kNoEvents = 100000; //Numero di eventi da simulare
+const bool kFlagMS = true; //Flag per vedere se simulare o no il Multiple scattering 
 const bool kFlagUniform = false; //Flag per vedere se usare una distribuzione uniforme o no per la molteplicità
 
 void generaVertice(pPoint* vtx);

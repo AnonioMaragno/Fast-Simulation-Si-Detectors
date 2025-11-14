@@ -303,7 +303,7 @@ void DrawEvent(TTree* tree, TString eventID) {
 // }
 
 // Funzione principale
-void EventDisplay(TString ev = "e903", const char* filename = "treeSimulated.root") {
+void EventDisplay(TString ev = "e90", const char* filename = "treeSimulated.root") {
     
     // Apre il file e il tree
     TFile* file = new TFile(filename);

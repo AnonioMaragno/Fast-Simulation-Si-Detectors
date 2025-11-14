@@ -19,9 +19,9 @@ const int nHist = 10;
 
 void Efficiency() {
 
-    cout << "----------------------------------" << endl;
-    cout << "-------- EFFICIENCY --------------" << endl;
-    cout << "----------------------------------" << endl << endl;
+    // cout << "----------------------------------" << endl;
+    // cout << "-------- EFFICIENCY --------------" << endl;
+    // cout << "----------------------------------" << endl << endl;
 
     // Lettura file input e ntuple
     TFile fileIn("treeReconstructed.root");
@@ -54,7 +54,7 @@ void Efficiency() {
         vHist[i] = new TH1D(name, title, 100, residMin, residMax);
     }*/
     TH2D *histo1 = new TH2D("hist1", "Histogram 1", 71, multMin-0.5, multMax+0.5, 201, residMin, residMax);
-    TH2D *histo2 = new TH2D("hist2", "Histogram 2", 200, zMin, zMax, 201, residMin, residMax);
+    TH2D *histo2 = new TH2D("hist2", "Histogram 2", 201, zMin, zMax, 201, residMin, residMax);
     double resid;
 
     for(int ev=0; ev<ntuple->GetEntries(); ev++){

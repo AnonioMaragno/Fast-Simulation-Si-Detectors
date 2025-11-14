@@ -15,7 +15,7 @@ using std::string;
 void PointSmearing(pHit* hit);
 void Noise(TClonesArray &hits, int muNoise, Layer lay, TString eventID);
 
-void Smearing(const int kMeanNoise = 5) {
+void Smearing(const bool enableNoise = false, const int kMeanNoise = 5) {
 
     cout << "----------------------------------" << endl;
     cout << "-------- SMEARING --------------" << endl;  
@@ -91,17 +91,20 @@ void Smearing(const int kMeanNoise = 5) {
             PointSmearing(pointL2);
         }
         
-        muNoise1 = gRandom->Poisson(kMeanNoise);
-        noiseCountL1 += muNoise1;
-        muNoise2 = gRandom->Poisson(kMeanNoise);
-        noiseCountL2 += muNoise2;
+        if (enableNoise){
+            muNoise1 = gRandom->Poisson(kMeanNoise);
+            noiseCountL1 += muNoise1;
+            muNoise2 = gRandom->Poisson(kMeanNoise);
+            noiseCountL2 += muNoise2;
 
-        if (muNoise1 > 0){
-            Noise(hits1, muNoise1, Layer::L1, evID);
+            if (muNoise1 > 0){
+                Noise(hits1, muNoise1, Layer::L1, evID);
+            }
+            if (muNoise2 > 0){
+                Noise(hits2, muNoise2, Layer::L2, evID);
+            }
         }
-        if (muNoise2 > 0){
-            Noise(hits2, muNoise2, Layer::L2, evID);
-        }
+        
 
         treeOut->Fill();
 

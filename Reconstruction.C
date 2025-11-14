@@ -20,11 +20,11 @@ const bool shouldDraw = false;
 double TrovaTracklet(pHit* h1, pHit* h2);
 void RunningWindow(TH1D* histo, double wSize, double &zRec, int &flag);
 
-void Reconstruction(const double kwSize = 0.1, const double kPhiWindow = 0.05){
+void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.1){
 
-    cout << "----------------------------------" << endl;
-    cout << "-------- RECONSTRUCTION --------------" << endl;
-    cout << "----------------------------------" << endl << endl;
+    // cout << "----------------------------------" << endl;
+    // cout << "-------- RECONSTRUCTION --------------" << endl;
+    // cout << "----------------------------------" << endl << endl;
 
     // Dichiarazione oggetti in cui salvare dati dal tree in input
     TString evID; 
@@ -36,7 +36,8 @@ void Reconstruction(const double kwSize = 0.1, const double kPhiWindow = 0.05){
 
     
     // Apertura file di input
-    TFile infile("treeSimulated.root");         //da cambiare con treeSmeared
+    //TFile infile("treeSimulated.root");         
+    TFile infile("treeSmeared.root");         
 
     // Apertura file di output
     TFile outfile("treeReconstructed.root", "RECREATE");
@@ -46,8 +47,9 @@ void Reconstruction(const double kwSize = 0.1, const double kPhiWindow = 0.05){
     ntuple->SetDirectory(&outfile);
     
     // Lettura TTree  e branch
-    TTree *tree = (TTree*) infile.Get("T");             //da cambiare col nome del tree smeared
-  
+    //TTree *tree = (TTree*) infile.Get("T");
+    TTree *tree = (TTree*) infile.Get("TOUT");             
+
     // Definizione degli indirizzi per la lettura dei dati su ttree
     tree->SetBranchAddress("eventID", &evIDptr);
     tree->SetBranchAddress("zVertex", &zVertex);
@@ -65,7 +67,9 @@ void Reconstruction(const double kwSize = 0.1, const double kPhiWindow = 0.05){
     const double sigma = 53;
 
     //variabili utili alla ricostruzione (in histo salvo le z_tracklet su cui poi faccio l'analisi con running window)
-    TH1D* histoTrack = new TH1D("histo", "Istrogramma di analisi", 100001, -5*sigma, 5*sigma); //non considero le z oltre 5 sigma
+    TH1D* histoTrack = new TH1D("histo", "Istrogramma di analisi", 20001, -5*sigma, 5*sigma); //non considero le z oltre 5 sigma
+
+    //cout << "Risoluzione del histoTrack = " << 1000 * 10*sigma / histoTrack->GetNbinsX()  << " micron" << endl;
 
     double zRec;
     int flag; //per capire se l'evento è stato ricostruito o no
@@ -151,11 +155,11 @@ void Reconstruction(const double kwSize = 0.1, const double kPhiWindow = 0.05){
         histoTrack->GetXaxis()->UnZoom();
     }
 
-    cout << "\n EVENTI NON RICOSTRUITI: " << endl;
+    // cout << "\n EVENTI NON RICOSTRUITI: " << endl;
 
-    for (auto evNON : nonREC){
-        cout << evNON << endl;
-    }
+    // for (auto evNON : nonREC){
+    //     cout << evNON << endl;
+    // }
 
     cout << "\n EVENTI RICOSTRUITI: " << countRec << endl;
     cout << "EVENTI TOTALI: " << tree->GetEntries() << endl << endl;
