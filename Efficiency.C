@@ -6,18 +6,36 @@
 #include "pEvent.h"
 #include "TClonesArray.h"
 #include "Riostream.h"
-#include "TRandom3.h"
-#include "TH1D.h"
 #include "TH2D.h"
 #include "TGraph.h"
+#include "TGraphErrors.h"
 #include "TF1.h"
 #include "TCanvas.h"
 using std::to_string;
 
 const int nHist = 10;
 
+double* fitDoubleGauss(double* rs, TF1* dg, TH1D* h){ 
+    
+    dg->SetParameters(h->GetMaximum(), 0.85, 0, 0.7*h->GetRMS(), 1.2*h->GetRMS());
+    dg->SetParLimits(1, 0, 1);
+    dg->SetParLimits(3, 0.02, 1);
+    dg->SetParLimits(4, 0.02, 5);
+    h->Fit(dg, "RQ+");
+    double weight = dg->GetParameter(1);
+    double sCore = dg->GetParameter(3);
+    double sTail = dg->GetParameter(4);
+    rs[0] = sqrt(sCore*sCore*weight + sTail*sTail*(1-weight));
 
-void Efficiency() {
+    double weightErr = dg->GetParError(1);
+    double sCoreErr= dg->GetParError(3);
+    double sTailErr= dg->GetParError(4);
+    rs[1] = sqrt(pow(sCore*weight*sCoreErr,2) + pow(sTail*(1-weight)*sTailErr,2) + 0.25*pow((sCore*sCore - sTail*sTail)*weightErr,2)) / rs[0];
+
+    return rs;
+}
+
+void Efficiency(double *effic = nullptr, double *rms = nullptr) {
 
     // cout << "----------------------------------" << endl;
     // cout << "-------- EFFICIENCY --------------" << endl;
@@ -38,33 +56,23 @@ void Efficiency() {
     // Variabili ausiliarie
     const double zMin = -200;
     const double zMax = 200;
-    const double residMin = -0.4;
-    const double residMax = 0.4;
+    const double residMin = -0.8;
+    const double residMax = 0.8;
     const int multMin = 0;
     const int multMax = 70;
 
+    // funzione di fit
+    TF1* dg = new TF1("dg", "[0]*([1]*exp(-0.5*((x-[2])/[3])*((x-[2])/[3])) + (1-[1])*exp(-0.5*((x-[2])/[4])*((x-[2])/[4])))", -0.5, 0.5);
+
     // Creazione istogrammi
-    /*TH1D *vHist[nHist];
-    int multArray[nHist]={3,5,10,15,20,30,40,50,60,70};
-    char name[30];
-    char title[50];
-    for (int i=0; i<nHist; i++){
-        snprintf(name,15,"h%d",smm[i]);
-        snprintf(title,50,"Risoluzione con molteplicità %d",smm[i]);
-        vHist[i] = new TH1D(name, title, 100, residMin, residMax);
-    }*/
-    TH2D *histo1 = new TH2D("hist1", "Histogram 1", 71, multMin-0.5, multMax+0.5, 201, residMin, residMax);
-    TH2D *histo2 = new TH2D("hist2", "Histogram 2", 201, zMin, zMax, 201, residMin, residMax);
+    TH2D *histo1 = new TH2D("hist1", "Residuals vs multiplicity", 71, multMin-0.5, multMax+0.5, 401, residMin, residMax);
+    TH2D *histo2 = new TH2D("hist2", "Residuals vs Ztrue", 200, zMin, zMax, 401, residMin, residMax);
     double resid;
 
     for(int ev=0; ev<ntuple->GetEntries(); ev++){
         
         ntuple->GetEvent(ev);
-        // qui zrec contiene il valore corrente di zrec; mult il corrente valore di mult, etc
-        // if (mult < 5) {
-        //     cout << "mult = " << mult << ", zTrue = " << zTrue << ", zRec = " << zRec << endl;    
-        // }
-        
+
         // Riempio histo1 e histo 2
         resid = zRec - zTrue;
         if (flag == 1) {
@@ -80,82 +88,89 @@ void Efficiency() {
     histo1->Write();
     histo2->Write();
 
-    // funzione di fit
-    TF1* dg = new TF1("dg", "[0]*([1]*exp(-0.5*((x-[2])/[3])*((x-[2])/[3])) + (1-[1])*exp(-0.5*((x-[2])/[4])*((x-[2])/[4])))", -0.5, 0.5); 
     
     // RESIDUI
     // Per qualsiasi molteplicità
     TCanvas *c1 = new TCanvas("c1", "c1", 0, 1, 600, 400);
     c1->cd();
+
     TH1D *hRes = histo1->ProjectionY("hRes");
-    hRes->SetTitle("Residui");
-    dg->SetParameters(hRes->GetMaximum(), 0.85, 0, 0.5*hRes->GetRMS(), 1.5*hRes->GetRMS());
-    hRes->Fit(dg, "RQ+");
+    hRes->SetTitle("Residuals");
+
+    double resolution[2];
+    fitDoubleGauss(resolution, dg, hRes);
+    
     hRes->Write();
-    double weight = dg->GetParameter(1);
-    double sCore = dg->GetParameter(3);
-    double sTail = dg->GetParameter(4);
-    double resolution = sqrt(sCore*sCore*weight + sTail*sTail*(1-weight));
 
-
-    cout << " RMS: "<< hRes->GetRMS() << " resol.: " << resolution << endl;
-
+    if (rms != nullptr){
+        *rms = hRes->GetRMS() * 1000; //rms in micron
+    }
+    else{
+        cout << " RMS: "<< hRes->GetRMS() * 1000 << " resol.: " << resolution[0]*1000 << " pm " << resolution[1]*1000 << " um" << endl;
+    }
+    
+    double rec_ev = hRes->Integral();
+    double tot_ev = hRes->GetEntries();
+    
+    if (effic != nullptr){     
+        *effic = rec_ev / tot_ev;
+    }
+    else{
+        cout << " Efficiency: "<< rec_ev / tot_ev << endl;
+    }
     
 
     // Per intervalli di molteplicità
-    int nMult[] = {3, 4, 5, 7, 10, 13, 19, 28, 37, 46, 55, 64};
-    TH1D *hResMult[12];
-    double resolutionMult[12];
-    double errResolutionMult[12];
+    double multis[] = {3, 4, 5, 7, 10, 13, 19, 28, 37, 46, 55, 64};
+    double multRange[] = {0.5, 0.5, 0.5, 1.5, 1.5, 1.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5};
+
+    int nM = std::size(multis);
+    TH1D *hResMult[nM];
+    double resolutionMult[nM];
+    double errResolutionMult[nM];
     char name[80];
     char title[100];
-    for(int i=0; i<12; i++) {
-        if(nMult[i] < 6){    
-            sprintf(name, "hResMult%i", nMult[i]);
-            sprintf(title, "Residui con molteplicità %i +/- 0.5", nMult[i]);
-            hResMult[i] = histo1->ProjectionY(name, histo1->GetXaxis()->FindBin(nMult[i]-0.499), histo1->GetXaxis()->FindBin(nMult[i]+0.499));
-        } else if(nMult[i] > 6 && nMult[i] < 14) {
-            sprintf(name, "hResMult%i", nMult[i]);
-            sprintf(title, "Residui con molteplicità %i +/- 1.5", nMult[i]);
-            hResMult[i] = histo1->ProjectionY(name, histo1->GetXaxis()->FindBin(nMult[i]-1.499), histo1->GetXaxis()->FindBin(nMult[i]+1.499));
-        } else {
-            sprintf(name, "hResMult%i", nMult[i]);
-            sprintf(title, "Residui con molteplicità %i +/- 4.5", nMult[i]);
-            hResMult[i] = histo1->ProjectionY(name, histo1->GetXaxis()->FindBin(nMult[i]-4.499), histo1->GetXaxis()->FindBin(nMult[i]+4.499));
-        }
+    
+    for(int i=0; i<nM; i++) {
+        sprintf(name, "hResMult%.0f", multis[i]);
+        sprintf(title, "Residuals with multiplicity at %.1f +/- %.1f", multis[i], multRange[i]);
+        hResMult[i] = histo1->ProjectionY(name, histo1->GetXaxis()->FindBin(multis[i]-multRange[i]+0.001), histo1->GetXaxis()->FindBin(multis[i]+multRange[i]-0.001));
         hResMult[i]->SetTitle(title);
-        dg->SetParameters(hResMult[i]->GetMaximum(), 0.7, 0, 0.5*hResMult[i]->GetRMS(), 1.5*hResMult[i]->GetRMS());
-        hResMult[i]->Fit(dg, "RQ+");
+
+        //fitDoubleGauss(res, dg, hResMult[i]);
+        TF1* fG = new TF1("fG", "gaus(0)", -0.5, 0.5);
+        hResMult[i] ->Fit(fG, "RQ+");
+        
+        resolutionMult[i] = fG -> GetParameter(2) * 1000; //in micron
+        errResolutionMult[i] = fG -> GetParError(2) * 1000;
+        
         hResMult[i]->Write();
-        double weight = dg->GetParameter(1);
-        double sCore = dg->GetParameter(3);
-        double sTail = dg->GetParameter(4);
-        resolutionMult[i] = sqrt(sCore*sCore*weight + sTail*sTail*(1-weight));
-        //cout << "multi: " << nMult[i] << " RMS: "<< hResMult[i]->GetRMS() << " resol.: " << resolutionMult[i] << endl;
-        //errResolutionMult[i] = dg->GetParError(2);
+
+        if (rms == nullptr){
+            cout << "Mult.: " << multis[i] << " RMS: "<< hResMult[i]->GetRMS()*1000 << " resol.: " << resolutionMult[i] << " pm " << errResolutionMult[i] << " um"<<  endl;
+        }
     }
 
-    c1->Close();
-
     // Efficienza vs molteplicità
-    double effMult[12];
-    double multArray[12];
+    double effMult[nM];
+    double erreffMult[nM];
     double num;
     double den;
-    for(int i=0; i<12; i++) {
+    for(int i=0; i<nM; i++) {
         num = hResMult[i]->Integral();
         den = hResMult[i]->GetEntries();
         if(den != 0) {
             effMult[i] = num/den;
+            erreffMult[i] = sqrt(effMult[i]*(1-effMult[i])/(hResMult[i]->GetEntries()));
         }
         else {
             effMult[i] = 0;
+            erreffMult[i] = 1. / (hResMult[i]->GetEntries());
         }
-        multArray[i] = nMult[i]; 
     }
-    TCanvas* cEffMult = new TCanvas("cEffMult", "cEffMult", 0, 1, 600, 400);
-    cEffMult->cd();
-    TGraph *gEffMult = new TGraph(12, multArray, effMult);
+
+    //TGraph *gEffMult = new TGraph(nM, multis, effMult);
+    TGraphErrors *gEffMult = new TGraphErrors(nM, multis, effMult, multRange, erreffMult);
     gEffMult->SetTitle("Efficiency vs Multiplicity");
     gEffMult->GetXaxis()->SetTitle("Multiplicity");
     gEffMult->GetYaxis()->SetTitle("Efficiency");
@@ -163,58 +178,73 @@ void Efficiency() {
     gEffMult->SetMarkerStyle(21);
     gEffMult->SetMarkerColor(kRed);
     gEffMult->Draw("ALP");
-    gEffMult->Write();
+    gEffMult->Write("EffvsMult");
 
-    cEffMult->Close();
-
-
-    // Risoluzione vs molteplicità
-    // TF1 *fResMult[12];
-    // double resolutionMult[12];
-    // double errResolutionMult[12];
-    // for (int i = 0; i<12; i++) {
-    //     sprintf(name, "fResMult%i", nMult[i]);
-    //     fResMult[i] = new TF1(name, "gaus", -5, 5);
-    //     fResMult[i]->SetParameters(hResMult[i]->GetEntries()/25, 0, 1.5);
-    //     hResMult[i]->Fit(fResMult[i], "R+");
-    //     resolutionMult[i] = fResMult[i]->GetParameter(2);
-    //     errResolutionMult[i] = fResMult[i]->GetParError(2);
-    // }
-    TGraph *gResolMult = new TGraph(12, multArray, resolutionMult);
-    gResolMult->Write();
+    //TGraph *gResMult = new TGraph(nM, multis, resolutionMult);
+    TGraphErrors* gResMult = new TGraphErrors(nM, multis, resolutionMult, multRange, errResolutionMult);
+    gResMult->SetTitle("Resolution vs Multiplicity");
+    gResMult->GetXaxis()->SetTitle("Multiplicity");
+    gResMult->GetYaxis()->SetTitle("Resolution (#mu m)");
+    gResMult->SetMarkerSize(0.8);
+    gResMult->SetMarkerStyle(21);
+    gResMult->SetMarkerColor(kRed);
+    gResMult->Draw("ALP");
+    gResMult->Write("ResvsMult");
 
     // Efficienza vs zTrue
-    double nZTrue[] = {-175, -125, -75, -37.5, -12.5, 12.5, 37.5, 75, 125, 175};
-    TH1D *hResZTrue[10];
-    for(int i=0; i<10; i++) {
-        if(abs(nZTrue[i]) < 38){
-            sprintf(name, "hResZTrue%i", i);
-            sprintf(title, "Residui con vertice %f +/- 12.5", nZTrue[i]);
-            hResZTrue[i] = histo2->ProjectionY(name, histo2->GetXaxis()->FindBin(nZTrue[i]-12.5), histo2->GetXaxis()->FindBin(nZTrue[i]+12.5));
-            hResZTrue[i]->SetTitle(title);
-            hResZTrue[i]->Write();
-        } else {
-            sprintf(name, "hResZTrue%i", i);
-            sprintf(title, "Residui con vertice %f +/- 25", nZTrue[i]);
-            hResZTrue[i] = histo2->ProjectionY(name, histo2->GetXaxis()->FindBin(nZTrue[i]-25), histo2->GetXaxis()->FindBin(nZTrue[i]+25));
-            hResZTrue[i]->SetTitle(title);
-            hResZTrue[i]->Write();
-        }
+    // double nZTrue[] = {-175, -125, -75, -37.5, -12.5, 12.5, 37.5, 75, 125, 175};
+    // double zRange[] = {  25,   25,  25,  12.5,  12.5, 12.5, 12.5, 25,  25,  25};
+     double nZTrue[] = {-150, -75, -37.5, -12.5, 12.5, 37.5, 75, 150};
+    double zRange[] =  {  50,  25,  12.5,  12.5, 12.5, 12.5, 25,  50};
+    int nZ = std::size(nZTrue);
+
+    TH1D *hResZTrue[nZ];
+    double resolutionZtrue[nZ];
+    double errResolutionZtrue[nZ];
+    double res[2];
+    for(int i=0; i<nZ; i++) {
+        sprintf(name, "hResZTrue%.0f", nZTrue[i]);
+        sprintf(title, "Residuals with vertex at %.1f +/- %.1f", nZTrue[i], zRange[i]);
+        hResZTrue[i] = histo2->ProjectionY(name, histo2->GetXaxis()->FindBin(nZTrue[i]-zRange[i]+0.001), histo2->GetXaxis()->FindBin(nZTrue[i]+zRange[i]-0.001));
+        hResZTrue[i]->SetTitle(title);
+        fitDoubleGauss(res, dg, hResZTrue[i]);
+        hResZTrue[i]->Write();
+
+        resolutionZtrue[i] = res[0]*1000;
+        errResolutionZtrue[i] = res[1]*1000;
     }
-    double effZTrue[10];
-    for(int i=0; i<10; i++) {
+
+    double effZTrue[nZ];
+    double erreffZTrue[nZ];
+    for(int i=0; i<nZ; i++) {
         num = hResZTrue[i]->Integral();
         den = hResZTrue[i]->GetEntries();
         if(den != 0) {
             effZTrue[i] = num/den;
+            erreffZTrue[i] = sqrt(effZTrue[i]*(1-effZTrue[i])/(hResZTrue[i]->GetEntries()));
+
         }
         else {
             effZTrue[i] = 0;
+            erreffZTrue[i] = 1. /(hResZTrue[i]->GetEntries());
+
         } 
     }
-    TCanvas* cEffZTrue = new TCanvas("cEffZTrue", "cEffZTrue", 0, 1, 600, 400);
-    cEffZTrue->cd();
-    TGraph *gEffZTrue = new TGraph(10, nZTrue, effZTrue);
+
+    //TGraph *gResZTrue = new TGraph(nZ, nZTrue, resolutionZtrue);
+    TGraphErrors *gResZTrue = new TGraphErrors(nZ, nZTrue, resolutionZtrue, zRange, errResolutionZtrue);
+    gResZTrue->SetTitle("Resolution vs Z_{vert}");
+    gResZTrue->GetXaxis()->SetTitle("Z_{true}");
+    gResZTrue->GetYaxis()->SetTitle("Resolution (#mu m)");
+    gResZTrue->SetMarkerSize(0.8);
+    gResZTrue->SetMarkerStyle(21);
+    gResZTrue->SetMarkerColor(kRed);
+    gResZTrue->Draw("ALP");
+    gResZTrue->Write("ResvsZTrue");
+
+
+    //TGraph *gEffZTrue = new TGraph(nZ, nZTrue, effZTrue);
+    TGraphErrors *gEffZTrue = new TGraphErrors(nZ, nZTrue, effZTrue, zRange, erreffZTrue);
     gEffZTrue->SetTitle("Efficiency vs Z_{vert}");
     gEffZTrue->GetXaxis()->SetTitle("Z_{true}");
     gEffZTrue->GetYaxis()->SetTitle("Efficiency");
@@ -222,29 +252,9 @@ void Efficiency() {
     gEffZTrue->SetMarkerStyle(21);
     gEffZTrue->SetMarkerColor(kRed);
     gEffZTrue->Draw("ALP");
-    gEffZTrue->Write();
+    gEffZTrue->Write("EffvsZTrue");
 
-    cEffZTrue->Close();
-
-    // // Risoluzione vs zTrue
-    // TF1 *fResZTrue[10];
-    // double resolutionZTrue[10];
-    // double errResolutionZTrue[10];
-    // for (int i = 0; i<10; i++) {
-    //     sprintf(name, "fResZTrue%i", nZTrue[i]);
-    //     fResZTrue[i] = new TF1(name, "gaus", -1000, 1000);
-    //     fResZTrue[i]->SetParameters(ntuple->GetEntries()/500, 0, 100);
-    //     hResZTrue[i]->Fit(fResZTrue[i], "R+");
-    //     resolutionZTrue[i] = fResZTrue[i]->GetParameter(2);
-    //     errResolutionZTrue[i] = fResZTrue[i]->GetParError(2);
-    // }
-    // TGraph *gResolZTrue = new TGraph(10, multArray, resolutionZTrue);
-    // gResolZTrue->Write();
-
-
-
-
-    
+    c1->Close();
 
     fileIn.Close();
     fileOut.Close();

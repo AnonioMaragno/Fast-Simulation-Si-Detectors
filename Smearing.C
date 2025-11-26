@@ -69,15 +69,19 @@ void Smearing(const bool enableNoise = false, const int kMeanNoise = 5) {
     int noiseCountL1 = 0;
     int noiseCountL2 = 0;
 
+    int barWidth = 70;
+
+    std::cout << "[";
+    for (int j = 0; j < barWidth; ++j) { std::cout << " ";}
+    std::cout << "] 0 %\r" << std::flush;
+
+    int nEntries = treeIn->GetEntries();
+
     // loop sugli ingressi nel TTree
-    for(int ev=0; ev<treeIn->GetEntries(); ev++){
+    for(int ev=0; ev<nEntries; ev++){
 
         treeIn->GetEvent(ev);
         evID = *evIDptr;
-
-        // cout << "EVENTO: " << evID.Data() << endl;
-        // cout << "\nzVertex = " << zVertex << endl;
-        // cout << "multi = " << multi << endl << endl;
 
         size1 = ptrHitsL1->GetEntriesFast();
         for (int i = 0; i < size1; i++) {
@@ -106,9 +110,27 @@ void Smearing(const bool enableNoise = false, const int kMeanNoise = 5) {
         }
         
 
+        if (ev % 100 == 0 || ev == nEntries-1){
+            // ------------- PROGRESS BAR --------------
+            float progress = (float) (ev+1.) / nEntries;
+            
+            
+            std::cout << "[";
+            int pos = barWidth * progress;
+            for (int j = 0; j < barWidth; ++j) {
+                if (j < pos) std::cout << "=";
+                else if (j == pos) std::cout << ">";
+                else std::cout << " ";
+            }
+            // \r riporta il cursore all'inizio, std::flush forza la stampa immediata
+            std::cout << "] " << int(progress * 100.0) << " %\r" << std::flush;
+        }
+
         treeOut->Fill();
 
     }
+
+    std::cout << std::endl;
 
     // cout << "PUNTI DI NOISE CREATI SU L1: " << noiseCountL1 << endl;
     // cout << "PUNTI DI NOISE CREATI SU L2: " << noiseCountL2 << endl;

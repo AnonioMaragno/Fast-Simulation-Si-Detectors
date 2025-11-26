@@ -12,8 +12,8 @@
 #include "TF1.h"
 #include "pPoint.h"
 
-const int kNoEvents = 100000; //Numero di eventi da simulare
-const bool kFlagMS = true; //Flag per vedere se simulare o no il Multiple scattering 
+const int kNoEvents = 1000000; //Numero di eventi da simulare
+const bool kFlagMS = false; //Flag per vedere se simulare o no il Multiple scattering 
 const bool kFlagUniform = false; //Flag per vedere se usare una distribuzione uniforme o no per la molteplicità
 
 void generaVertice(pPoint* vtx);
@@ -68,16 +68,15 @@ void Simulation() {
     tree->Branch("HitsL2", &ptrHitsL2);
     tree->Branch("HitsBP", &ptrHitsBP);
 
-    // // Creazione di un tree per Event Display
-    // TFile* outfileED = new TFile("treeEventDisplay.root", "RECREATE");
-    // TTree *treeED = new TTree("TreeED","TTree con 2 branch");
-    // pEvent* event = nullptr; // per salvare l'evento
-    // treeED->Branch("eventID", &eventID);
-    // treeED->Branch("Event", "pEvent", &event);
-
     double cd[3]; //array che conterrà i coseni direttori  
 
     Layer layers[3] = {Layer::BP, Layer::L1, Layer::L2};//array che serve per simulare cronologicamente dove incide la particella
+
+    int barWidth = 70;
+
+    std::cout << "[";
+    for (int j = 0; j < barWidth; ++j) { std::cout << " ";}
+    std::cout << "] 0 %\r" << std::flush;
 
     for (int k=0; k<kNoEvents; k++){
 
@@ -103,22 +102,36 @@ void Simulation() {
                 }
             }
         }
+
+        if ( k % 100 == 0 || k == kNoEvents-1){
+            // ------------- PROGRESS BAR --------------
+            float progress = (float) (k+1.) / kNoEvents;
+            
+            
+            std::cout << "[";
+            int pos = barWidth * progress;
+            for (int j = 0; j < barWidth; ++j) {
+                if (j < pos) std::cout << "=";
+                else if (j == pos) std::cout << ">";
+                else std::cout << " ";
+            }
+            // \r riporta il cursore all'inizio, std::flush forza la stampa immediata
+            std::cout << "] " << int(progress * 100.0) << " %\r" << std::flush;
+        }
         
         eventID = ev->GetEventID();
         zVert = ev->GetZVertex();
-        // event = ev;
 
         tree -> Fill();
-        // treeED->Fill();
 
         delete ev;
         ev = nullptr;
     }
 
+    std::cout << std::endl; // Vai a capo alla fine
+
     outfile->Write();
     outfile->Close();
-    // outfileED->Write();
-    // outfileED->Close();
     f->Close();
 
     delete vertex;

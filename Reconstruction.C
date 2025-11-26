@@ -16,16 +16,19 @@
 // const double kwSize = 1;
 // const double kPhiWindow = 0.15;
 const bool shouldDraw = false;
+const bool kProgress = true;
 
 double TrovaTracklet(pHit* h1, pHit* h2);
 void RunningWindow(TH1D* histo, double wSize, double &zRec, int &flag);
 
 void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.1){
 
-    // cout << "----------------------------------" << endl;
-    // cout << "-------- RECONSTRUCTION --------------" << endl;
-    // cout << "----------------------------------" << endl << endl;
-
+    if (kProgress){
+        cout << "----------------------------------" << endl;
+        cout << "-------- RECONSTRUCTION --------------" << endl;
+        cout << "----------------------------------" << endl << endl;
+    }
+    
     // Dichiarazione oggetti in cui salvare dati dal tree in input
     TString evID; 
     TString* evIDptr = 0;
@@ -67,7 +70,7 @@ void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.1){
     const double sigma = 53;
 
     //variabili utili alla ricostruzione (in histo salvo le z_tracklet su cui poi faccio l'analisi con running window)
-    TH1D* histoTrack = new TH1D("histo", "Istrogramma di analisi", 20001, -5*sigma, 5*sigma); //non considero le z oltre 5 sigma
+    TH1D* histoTrack = new TH1D("histo", "Istrogramma di analisi", 5001, -5*sigma, 5*sigma); //non considero le z oltre 5 sigma
 
     //cout << "Risoluzione del histoTrack = " << 1000 * 10*sigma / histoTrack->GetNbinsX()  << " micron" << endl;
 
@@ -81,8 +84,17 @@ void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.1){
     int countRec = 0;
     vector <TString> nonREC;
 
+    int barWidth = 70;
+    if (kProgress) {
+        std::cout << "[";
+        for (int j = 0; j < barWidth; ++j) { std::cout << " ";}
+        std::cout << "] 0 %\r" << std::flush;
+    }
+
+    int nEntries = tree->GetEntries();
+
     // loop sugli ingressi nel TTree per costruire TRACKLET e VERTEX REC
-    for(int ev=0; ev<tree->GetEntries(); ev++){
+    for(int ev=0; ev<nEntries; ev++){
         tree->GetEvent(ev);
         //cout << "\nEVENTO " << evIDptr->Data() << endl << endl;
         
@@ -140,6 +152,20 @@ void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.1){
             nonREC.push_back(*evIDptr);
         }
 
+        if (kProgress && (ev % 100 == 0 || ev == nEntries-1)){
+            float progress = (float) (ev+1.) / nEntries;
+            std::cout << "[";
+            int pos = barWidth * progress;
+            for (int j = 0; j < barWidth; ++j) {
+                if (j < pos) std::cout << "=";
+                else if (j == pos) std::cout << ">";
+                else std::cout << " ";
+            }
+            // \r riporta il cursore all'inizio, std::flush forza la stampa immediata
+            std::cout << "] " << int(progress * 100.0) << " %\r" << std::flush;
+
+        }
+
         // if (multi < 5) {
         //     cout << "binWidth = " << histoTrack->GetBinWidth(1) << endl;
         //     cout << "bin center of max bin = " << histoTrack->GetBinCenter(histoTrack->GetMaximumBin()) << endl;
@@ -155,15 +181,19 @@ void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.1){
         histoTrack->GetXaxis()->UnZoom();
     }
 
+    if (kProgress){
+        std::cout << std::endl;
+    }
+
     // cout << "\n EVENTI NON RICOSTRUITI: " << endl;
 
     // for (auto evNON : nonREC){
     //     cout << evNON << endl;
     // }
 
-    cout << "\n EVENTI RICOSTRUITI: " << countRec << endl;
-    cout << "EVENTI TOTALI: " << tree->GetEntries() << endl << endl;
-    cout << "Efficienza tot.: " << ((double) countRec)/((double) tree->GetEntries()) << endl;
+    // cout << "\n EVENTI RICOSTRUITI: " << countRec << endl;
+    // cout << "EVENTI TOTALI: " << tree->GetEntries() << endl << endl;
+    //cout << "Efficienza tot.: " << ((double) countRec)/((double) tree->GetEntries()) << endl;
 
     //c->Write();
     c->Close();
