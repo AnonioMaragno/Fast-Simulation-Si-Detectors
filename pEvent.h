@@ -45,16 +45,15 @@ class pEvent : public TObject {
 			fHitsL2 = nullptr;
 		};
 
-
+		// ASSIGNEMENT OPERATOR E COPY MESSI = delete COSÌ NON LI COSTRUISCE IL COMPILER
+		// NON VOGLIO COPIE DEL MIO EVENTO (metodo C++11)
+		void operator=(const pEvent& source) = delete;//assignment operator
+		pEvent(const pEvent& source) = delete;//copy constructor
 
 
 	private:
 		// data members
 		
-		//contatori
-		static int fRegisteredL1;//per contare gli eventi registrati su L1
-		static int fRegisteredL2;//per contare gli eventi registrati su L2
-
 		int fM;// Molteplicità di particelle
 		pPoint* fVertex;// Puntatore al vertice
 		TString feventID; //ID dell'evento
@@ -64,14 +63,6 @@ class pEvent : public TObject {
 		static TClonesArray *fHitsL1; //-> 
 		static TClonesArray *fHitsL2; //-> 
 	
-
-		// ASSIGNEMENT OPERATOR E COPY DICHIARATI PRIVATI COSÌ NON LI COSTRUISCE IL COMPILER
-		// NON VOGLIO COPIE DEL MIO EVENTO
-		void operator=(const pEvent& source){};//assignment operator
-		pEvent(const pEvent& source);//copy constructor
-
-
-		
 
 	ClassDef(pEvent,1);
 };

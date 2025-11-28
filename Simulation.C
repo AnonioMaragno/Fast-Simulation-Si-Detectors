@@ -6,8 +6,6 @@
 #include "TClonesArray.h"
 #include "Riostream.h"
 #include "TRandom3.h"
-#include "TROOT.h"
-#include "TKey.h"
 #include "TH1F.h"
 #include "TF1.h"
 #include "pPoint.h"

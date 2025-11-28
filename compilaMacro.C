@@ -18,15 +18,15 @@ void compilaMacro(TString myopt="fast"){
   gSystem->CompileMacro("pHit.cpp",opt.Data());
   gSystem->CompileMacro("pEvent.cpp",opt.Data());
   gSystem->CompileMacro("Simulation.C",opt.Data());
-  //gSystem->CompileMacro("EventDisplay.C",opt.Data());
+  gSystem->CompileMacro("EventDisplay.C",opt.Data());
   gSystem->CompileMacro("Smearing.C",opt.Data());
   gSystem->CompileMacro("Reconstruction.C",opt.Data());
   gSystem->CompileMacro("Efficiency.C",opt.Data());
-  //gSystem->CompileMacro("scans.C",opt.Data());
+  gSystem->CompileMacro("scans.C",opt.Data());
 
 
   gROOT->ProcessLine("Simulation();");
-  gROOT->ProcessLine("Smearing(true, 3);");
+  //gROOT->ProcessLine("Smearing(true, 3);");
 
 
   if (kScan){
@@ -45,8 +45,8 @@ void compilaMacro(TString myopt="fast"){
 
   }
   else{
-    gROOT->ProcessLine("Reconstruction(2.3, 0.01);"); //dPhi ottimale 0.01 senza MS e 0.05 con MS
-    gROOT->ProcessLine("Efficiency();");
+    //gROOT->ProcessLine("Reconstruction(2.3, 0.01);"); //dPhi ottimale 0.01 senza MS e 0.05 con MS
+    //gROOT->ProcessLine("Efficiency();");
   }
 
   //gROOT->ProcessLine("EventDisplay()");

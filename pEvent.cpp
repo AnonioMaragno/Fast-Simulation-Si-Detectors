@@ -27,14 +27,6 @@ fM(mult){
 }
 
 
-// ------- not used -------
-pEvent::pEvent(const pEvent& source): 
-TObject(source),
-fVertex(source.fVertex),
-fM(source.fM),
-feventID(source.feventID){
-}
-
 // distruttore
 pEvent::~pEvent()
 {    
@@ -45,7 +37,6 @@ pEvent::~pEvent()
     fHitsL1->Clear();
     fHitsL2->Clear();
 }
-
 
 
 // Trasporto della particella da un punto iniziale ad un layer (c -> coseni direttori)

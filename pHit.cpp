@@ -37,11 +37,11 @@ pHit::pHit(const pHit &source): pPoint(source), fId(source.fId), fLayer(source.f
 void pHit::operator=(const pHit &source)
 {
     if (this != &source){
-    pPoint::operator=(source);
-    fId = source.fId;
-    fLayer = source.fLayer;
-    fPhi = source.fPhi;
-  }
+        pPoint::operator=(source);
+        fId = source.fId;
+        fLayer = source.fLayer;
+        fPhi = source.fPhi;
+    }
 }
 
 // Destructor
@@ -53,6 +53,9 @@ void pHit::SetPhi(double phi)
 {
     if (phi > 2*acos(-1.)){
         phi = phi - 2*acos(-1);
+    }
+    else if ( phi < 0.){
+        phi = phi + 2*acos(-1);
     }
     fPhi = phi;
     static double r = 0.0;
@@ -76,8 +79,3 @@ double pHit::GetR()
     }
     return R;
 }
-
-// double pHit::GetPhi() const
-// {
-//     return ATan(GetY()/GetX());
-// }

@@ -51,7 +51,7 @@ void Efficiency(double *effic = nullptr, double *rms = nullptr) {
     ntuple->SetBranchAddress("mult", &mult);
 
     // Creazione file output in cui salvare gli istogrammi
-    TFile fileOut("histograms3.root", "RECREATE");
+    TFile fileOut("histograms.root", "RECREATE");
 
     // Variabili ausiliarie
     const double zMin = -200;
