@@ -51,6 +51,9 @@ pHit::~pHit() {
 
 void pHit::SetPhi(double phi)
 {
+    if (phi > 2*acos(-1.)){
+        phi = phi - 2*acos(-1);
+    }
     fPhi = phi;
     static double r = 0.0;
     r = GetR();

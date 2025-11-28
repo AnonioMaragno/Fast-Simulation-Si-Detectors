@@ -15,7 +15,7 @@ using std::string;
 void PointSmearing(pHit* hit);
 void Noise(TClonesArray &hits, int muNoise, Layer lay, TString eventID);
 
-void Smearing(const bool enableNoise = false, const int kMeanNoise = 5) {
+void Smearing(const bool enableNoise = true, const int kMeanNoise = 3) {
 
     cout << "----------------------------------" << endl;
     cout << "-------- SMEARING --------------" << endl;  
@@ -132,8 +132,8 @@ void Smearing(const bool enableNoise = false, const int kMeanNoise = 5) {
 
     std::cout << std::endl;
 
-    // cout << "PUNTI DI NOISE CREATI SU L1: " << noiseCountL1 << endl;
-    // cout << "PUNTI DI NOISE CREATI SU L2: " << noiseCountL2 << endl;
+    cout << "\nPUNTI DI NOISE CREATI SU L1: " << noiseCountL1 << endl;
+    cout << "PUNTI DI NOISE CREATI SU L2: " << noiseCountL2 << endl;
 
     hfile2.Write();
     hfile1.Close();

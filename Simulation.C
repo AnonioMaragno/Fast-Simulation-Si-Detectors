@@ -12,8 +12,8 @@
 #include "TF1.h"
 #include "pPoint.h"
 
-const int kNoEvents = 1000000; //Numero di eventi da simulare
-const bool kFlagMS = false; //Flag per vedere se simulare o no il Multiple scattering 
+const int kNoEvents = 100000; //Numero di eventi da simulare
+const bool kFlagMS = true; //Flag per vedere se simulare o no il Multiple scattering 
 const bool kFlagUniform = false; //Flag per vedere se usare una distribuzione uniforme o no per la molteplicità
 
 void generaVertice(pPoint* vtx);
@@ -21,6 +21,8 @@ void generaDirezione(TH1F* etaDist, double *cosDir);
 void MultipleScattering(double* cd);
 
 void Simulation() {
+
+    gRandom->SetSeed(0);
 
     cout << "----------------------------------" << endl;
     cout << "-------- SIMULATION --------------" << endl;
@@ -148,6 +150,9 @@ void generaVertice(pPoint* vtx){
     double xVert = gRandom->Gaus(0,0.1);
     double yVert = gRandom->Gaus(0,0.1);
     double zVert = gRandom->Gaus(0,53);
+
+    //distribuzione uniforme in Z
+    //double zVert = 400.*(gRandom->Rndm()) - 200.0;
 
     vtx->SetCoord(xVert, yVert, zVert);
 }

@@ -5,3 +5,6 @@
 *.jpg
 *.root
 images/
+MS_w_smear/
+smearonly/
+full_3_noise/

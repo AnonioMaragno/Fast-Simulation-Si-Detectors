@@ -37,9 +37,9 @@ double* fitDoubleGauss(double* rs, TF1* dg, TH1D* h){
 
 void Efficiency(double *effic = nullptr, double *rms = nullptr) {
 
-    // cout << "----------------------------------" << endl;
-    // cout << "-------- EFFICIENCY --------------" << endl;
-    // cout << "----------------------------------" << endl << endl;
+    cout << "\n----------------------------------" << endl;
+    cout << "-------- EFFICIENCY --------------" << endl;
+    cout << "----------------------------------" << endl << endl;
 
     // Lettura file input e ntuple
     TFile fileIn("treeReconstructed.root");
@@ -51,7 +51,7 @@ void Efficiency(double *effic = nullptr, double *rms = nullptr) {
     ntuple->SetBranchAddress("mult", &mult);
 
     // Creazione file output in cui salvare gli istogrammi
-    TFile fileOut("histograms.root", "RECREATE");
+    TFile fileOut("histograms3.root", "RECREATE");
 
     // Variabili ausiliarie
     const double zMin = -200;
