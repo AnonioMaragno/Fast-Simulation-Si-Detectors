@@ -6,7 +6,6 @@
 #include <TRandom3.h>
 #include <TH1F.h>
 #include <TCanvas.h>
-#include <TButton.h>
 #include <TLine.h>
 #include <TFile.h>
 #include <TTree.h>
@@ -15,9 +14,6 @@
 
 TGeoManager* geom = nullptr;
 TCanvas* canvas = nullptr;
-TCanvas* cL = new TCanvas("cL", "Lateral view", 600, 500, 600, 400);
-TCanvas* cF = new TCanvas("cF", "Frontal view", 1200, 500, 600, 600);
-
 
 TTree* tree = nullptr;
 int currentEvent = 0;
@@ -26,7 +22,7 @@ std::vector<TPolyLine3D*> tracks;
 std::vector<TLine*> linesF;
 std::vector<TLine*> linesL;
 
-void DrawGeoProj(){
+void DrawGeoProj(TCanvas* cL, TCanvas* cF){
     cF->cd();
 
     TH1F* hframe = cF->DrawFrame(-10, -10, 10, 10);
@@ -155,27 +151,27 @@ void BuildGeometry() {
 
 // Pulisce le tracce disegnate
 void ClearTracks() {
-    for (auto* t : tracks) {
-        t->Delete();
-    }
+    // for (auto* t : tracks) {
+    //     t->Delete();
+    // }
     tracks.clear();
 }
 
 void ClearLines() {
-    for (auto* l : linesF) {
-        l->Delete();
-    }
+    // for (auto* l : linesF) {
+    //     l->Delete();
+    // }
     linesF.clear();
 
-    for (auto* l_l : linesL) {
-        l_l->Delete();
-    }
+    // for (auto* l_l : linesL) {
+    //     l_l->Delete();
+    // }
     linesL.clear();
 }
 
 
 // Disegna un evento
-void DrawEvent(TTree* tree, TString eventID) {
+void DrawEvent(TTree* tree, TString eventID, TCanvas* cL, TCanvas* cF) {
     ClearTracks();
     ClearLines();
 
@@ -281,29 +277,17 @@ void DrawEvent(TTree* tree, TString eventID) {
         }
     }
 
+    if (tracks.size() == 0){
+        cout << "Evento non trovato" << endl;
+    }
+
     canvas->Modified();
     canvas->Update();
 }
 
 
-// // Callback per bottoni
-// void NextEvent() {
-//     ++currentEvent;
-//     std::cout << "Visualizing event: " << currentEvent << std::endl;
-//     DrawEvent(currentEvent);
-// }
-// void PrevEvent() {
-//     if (currentEvent > 0) {
-//         currentEvent--;
-//         std::cout << "Visualizing event: " << currentEvent << std::endl;
-//         DrawEvent(currentEvent);
-//     } else {
-//         std::cout << "Sei già all'evento 0.\n";
-//     }
-// }
-
 // Funzione principale
-void EventDisplay(TString ev = "e1", const char* filename = "treeSimulated.root") {
+void EventDisplay(TString ev = "e100", const char* filename = "treeSimulated.root") {
     
     // Apre il file e il tree
     TFile* file = new TFile(filename);
@@ -314,7 +298,9 @@ void EventDisplay(TString ev = "e1", const char* filename = "treeSimulated.root"
         return;
     }
 
-    DrawGeoProj();
+    TCanvas* cL = new TCanvas("cL", "Lateral view", 600, 500, 600, 400);
+    TCanvas* cF = new TCanvas("cF", "Frontal view", 1200, 500, 600, 600);
+
 
     // Costruisce la geometria
     geom = new TGeoManager("Detector", "Detector Geometry");
@@ -322,38 +308,41 @@ void EventDisplay(TString ev = "e1", const char* filename = "treeSimulated.root"
 
     // // Canvas e disegno
     canvas = new TCanvas("canvas", "Event Display", 1000, 800);
-    geom->GetTopVolume()->Draw("ogl");
     
-    // // Bottone "Next Event"
-    // TButton* nextBtn = new TButton("Next Event", "NextEvent()", 0.85, 0.9, 0.98, 0.95);
-    // nextBtn->SetFillColor(kYellow);
-    // nextBtn->Draw();
-    // // Bottone "Prev Event"
-    // TButton* prevBtn = new TButton("Prev Event", "PrevEvent()", 0.7, 0.9, 0.83, 0.95);
-    // prevBtn->SetFillColor(kCyan);
-    // prevBtn->Draw();
+    bool shouldDraw = true;
 
-    DrawEvent(tree, ev); // Disegna l'evento richiesto
-    cout << "Visualizing ev = " << ev << endl;
+    while(shouldDraw){
+        canvas->Clear();
+        cL->Clear();
+        cF->Clear();
+        DrawGeoProj(cL, cF);
+        canvas->cd();
+        geom->GetTopVolume()->Draw("ogl");
+
+        DrawEvent(tree, ev, cL, cF); // Disegna l'evento richiesto
+        cout << "Visualizing ev = " << ev << endl;
+        canvas->Update();
+        cF->Update();
+        cL->Update();
+        gPad->WaitPrimitive();
+
+        int num;
+        cout << "Next event? (Insert number, if you want to stop type -1)" << endl;
+        cin >> num;
+        if (num == -1){
+            shouldDraw = false;
+        }
+        else{
+            ev = Form("e%d", num);
+        }
+    }
+    
+    canvas->Clear();
+    cL->Clear();
+    cF->Clear();
     canvas->Close();
+    cF->Close();
+    cL->Close();
+    file->Close();
    
 }
-
-// void Debug(const char* filename = "treeSimulated.root") {
-
-//     TFile* file = new TFile(filename);
-//     file->ls();
-//     tree = (TTree*)file->Get("T");
-//     tree->Print();
-
-//     tree->Show(0);
-
-//     TString* evID = nullptr;
-//     pEvent* event = nullptr;
-
-//     tree->SetBranchAddress("eventID", &evID);
-//     tree->SetBranchAddress("Event", &event);
-
-
-
-// }

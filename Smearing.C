@@ -15,7 +15,7 @@ using std::string;
 void PointSmearing(pHit* hit);
 void Noise(TClonesArray &hits, int muNoise, Layer lay, TString eventID);
 
-void Smearing(const int kMeanNoise = 5) {
+void Smearing(const bool enableNoise = true, const int kMeanNoise = 3) {
 
     cout << "----------------------------------" << endl;
     cout << "-------- SMEARING --------------" << endl;  
@@ -69,15 +69,19 @@ void Smearing(const int kMeanNoise = 5) {
     int noiseCountL1 = 0;
     int noiseCountL2 = 0;
 
+    int barWidth = 70;
+
+    std::cout << "[";
+    for (int j = 0; j < barWidth; ++j) { std::cout << " ";}
+    std::cout << "] 0 %\r" << std::flush;
+
+    int nEntries = treeIn->GetEntries();
+
     // loop sugli ingressi nel TTree
-    for(int ev=0; ev<treeIn->GetEntries(); ev++){
+    for(int ev=0; ev<nEntries; ev++){
 
         treeIn->GetEvent(ev);
         evID = *evIDptr;
-
-        // cout << "EVENTO: " << evID.Data() << endl;
-        // cout << "\nzVertex = " << zVertex << endl;
-        // cout << "multi = " << multi << endl << endl;
 
         size1 = ptrHitsL1->GetEntriesFast();
         for (int i = 0; i < size1; i++) {
@@ -91,24 +95,45 @@ void Smearing(const int kMeanNoise = 5) {
             PointSmearing(pointL2);
         }
         
-        muNoise1 = gRandom->Poisson(kMeanNoise);
-        noiseCountL1 += muNoise1;
-        muNoise2 = gRandom->Poisson(kMeanNoise);
-        noiseCountL2 += muNoise2;
+        if (enableNoise){
+            muNoise1 = gRandom->Poisson(kMeanNoise);
+            noiseCountL1 += muNoise1;
+            muNoise2 = gRandom->Poisson(kMeanNoise);
+            noiseCountL2 += muNoise2;
 
-        if (muNoise1 > 0){
-            Noise(hits1, muNoise1, Layer::L1, evID);
+            if (muNoise1 > 0){
+                Noise(hits1, muNoise1, Layer::L1, evID);
+            }
+            if (muNoise2 > 0){
+                Noise(hits2, muNoise2, Layer::L2, evID);
+            }
         }
-        if (muNoise2 > 0){
-            Noise(hits2, muNoise2, Layer::L2, evID);
+        
+
+        if (ev % 100 == 0 || ev == nEntries-1){
+            // ------------- PROGRESS BAR --------------
+            float progress = (float) (ev+1.) / nEntries;
+            
+            
+            std::cout << "[";
+            int pos = barWidth * progress;
+            for (int j = 0; j < barWidth; ++j) {
+                if (j < pos) std::cout << "=";
+                else if (j == pos) std::cout << ">";
+                else std::cout << " ";
+            }
+            // \r riporta il cursore all'inizio, std::flush forza la stampa immediata
+            std::cout << "] " << int(progress * 100.0) << " %\r" << std::flush;
         }
 
         treeOut->Fill();
 
     }
 
-    // cout << "PUNTI DI NOISE CREATI SU L1: " << noiseCountL1 << endl;
-    // cout << "PUNTI DI NOISE CREATI SU L2: " << noiseCountL2 << endl;
+    std::cout << std::endl;
+
+    cout << "\nPUNTI DI NOISE CREATI SU L1: " << noiseCountL1 << endl;
+    cout << "PUNTI DI NOISE CREATI SU L2: " << noiseCountL2 << endl;
 
     hfile2.Write();
     hfile1.Close();

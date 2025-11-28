@@ -5,3 +5,10 @@
 *.jpg
 *.root
 images/
+MS_w_smear/
+smearonly/
+full_3_noise/
+comparison/
+mult_unif/
+z_unif/
+z_mult_unif/
