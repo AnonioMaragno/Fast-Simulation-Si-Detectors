@@ -73,13 +73,14 @@ void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.1){
     double zRec;
     int flag; //per capire se l'evento è stato ricostruito o no
 
-    // se non sono riuscito a ricsotruire il vertice uso una flag 0 e zRec messo a un valore standard
+    // Se non sono riuscito a ricsotruire il vertice uso una flag 0 e zRec messo a un valore standard
 
     //Canvas per debug
     TCanvas *c = new TCanvas("cDeb", "Canvas debug");
     int countRec = 0;
     vector <TString> nonREC;
 
+    // Progress bar
     int barWidth = 70;
     if (kProgress) {
         std::cout << "[";
@@ -97,7 +98,7 @@ void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.1){
         int nEntriesL1 = ptrHitsL1->GetEntriesFast();
         int nEntriesL2 = ptrHitsL2->GetEntriesFast();
 
-        //gestione degli eventi che non hanno entries su L1 o L2 (in quel caso lo considero non ricostruito)
+        // Gestione degli eventi che non hanno entries su L1 o L2 (in quel caso lo considero non ricostruito)
         if(nEntriesL1>0 && nEntriesL2>0){
             for (int i = 0; i<nEntriesL1; i++){
                 // accedo alla phi della hit L1
@@ -122,7 +123,7 @@ void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.1){
             zRec = 2000.;
         }
         
-        if (shouldDraw && !flag && nEntriesL1>0 && nEntriesL2>0){
+        if (shouldDraw && !flag && nEntriesL1>0 && nEntriesL2>0){  // Stampa canvas di debug
             gStyle->SetOptStat(11111111);
             histoTrack->SetTitle(Form("Evento con molt %d, nEntriesL1 %d, nEntriesL2 %d", multi, nEntriesL1, nEntriesL2));
             histoTrack->GetXaxis()->SetRangeUser(zVertex-1, zVertex+1);
@@ -149,6 +150,7 @@ void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.1){
         }
 
         if (kProgress && (ev % 100 == 0 || ev == nEntries-1)){
+            // ------------- PROGRESS BAR -------------- //
             float progress = (float) (ev+1.) / nEntries;
             std::cout << "[";
             int pos = barWidth * progress;
@@ -191,7 +193,7 @@ void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.1){
 }
 
 
-//trova il pto di intersezione con l'asse z della retta per le due hit nel piano R-z 
+// Trova il punto di intersezione con l'asse z della retta per le due hit nel piano R-z 
 double TrovaTracklet(pHit *h1, pHit *h2)
 {
     double z1 = h1->GetZ();
@@ -207,15 +209,15 @@ void RunningWindow(TH1D* histo, double wSize, double &zRec, int &flag, bool kRev
  
     int nbins = histo->GetNbinsX();
 
-    //passaggio da larghezza della running window in mm a larghezza in numero di bin
+    // Passaggio da larghezza della running window in mm a larghezza in numero di bin
     double binSize = histo->GetBinWidth(1); 
     int wWidth = (int) (wSize / binSize);
 
-    // inizializzazione delle variabili di comodo
+    // Inizializzazione delle variabili di comodo
     bool maxFound = true;
     int binMaxSx, binMaxDx; // qui vengono salvati il bin sx e dx della running window in cui c'è il max
     
-    if (kReverse){
+    if (kReverse){ // algoritmo di running window da dx verso sx
         binMaxSx = nbins-wWidth+1; 
         binMaxDx = nbins; 
     }
@@ -229,10 +231,10 @@ void RunningWindow(TH1D* histo, double wSize, double &zRec, int &flag, bool kRev
 
     //-----------ALGORITMO DI RUNNING WINDOW -------------
 
-    //gestione di istogrammi a una entries
+    // Gestione di istogrammi a una entries
     if (histo->Integral() > 1){
         for (int i=1+wWidth; i<=nbins; i++){
-            // tolgo il valore di un bin e ne aggiungo uno alla fine
+            // tolgo il valore di un bin all'inizio e ne aggiungo uno alla fine (viceversa per l'algoritmo al contrario)
             if (kReverse){
                 partialSum = partialSum + histo->GetBinContent(nbins-i+1) - histo->GetBinContent(nbins-i+wWidth+1);
             }

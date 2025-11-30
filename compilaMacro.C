@@ -45,7 +45,7 @@ void compilaMacro(TString myopt="fast"){
 
   }
   else{
-    //gROOT->ProcessLine("Reconstruction(2.3, 0.01);"); //dPhi ottimale 0.01 senza MS e 0.05 con MS
+    //gROOT->ProcessLine("Reconstruction(2.3, 0.01);"); //dPhi ottimale = 0.01 senza MS e 0.05 con MS
     //gROOT->ProcessLine("Efficiency();");
   }
 

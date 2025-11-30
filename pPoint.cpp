@@ -20,7 +20,7 @@ pPoint::pPoint(const pPoint &source):
 
 }
 
-//assignment operator
+// Assignment operator
 void pPoint::operator=(const pPoint &source)
 {
   if (this != &source){
@@ -35,14 +35,14 @@ void pPoint::operator=(const pPoint &source)
 pPoint::~pPoint() {
 }
 
-//per settare tutte e tre le coordinate insieme
+// Per settare tutte e tre le coordinate insieme
 void pPoint::SetCoord(double x, double y, double z) {
   SetX(x);
   SetY(y);
   SetZ(z);
 }
 
-// per copiare le coordinate di un punto in un altro senza creare un nuovo oggetto
+// Per copiare le coordinate di un punto in un altro senza creare un nuovo oggetto
 void pPoint::SetEqualTo(const pPoint &source)
 {
   SetCoord(source.fX, source.fY, source.fZ);

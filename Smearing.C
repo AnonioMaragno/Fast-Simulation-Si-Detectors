@@ -45,7 +45,6 @@ void Smearing(const bool enableNoise = true, const int kMeanNoise = 3) {
     treeIn->SetBranchAddress("HitsL1", &ptrHitsL1);
     treeIn->SetBranchAddress("HitsL2", &ptrHitsL2);
 
-    
     // Generazione nuovo Tree
     TTree *treeOut = new TTree("TOUT","TTree con 5 branches");
     treeOut->SetDirectory(&hfile2);
@@ -65,10 +64,11 @@ void Smearing(const bool enableNoise = true, const int kMeanNoise = 3) {
     TClonesArray &hits1 = *ptrHitsL1;
     TClonesArray &hits2 = *ptrHitsL2;
 
-    //debug
+    // Variabili di debug
     int noiseCountL1 = 0;
     int noiseCountL2 = 0;
 
+    // Progress bar
     int barWidth = 70;
 
     std::cout << "[";
@@ -77,7 +77,7 @@ void Smearing(const bool enableNoise = true, const int kMeanNoise = 3) {
 
     int nEntries = treeIn->GetEntries();
 
-    // loop sugli ingressi nel TTree
+    // Loop sugli ingressi nel TTree
     for(int ev=0; ev<nEntries; ev++){
 
         treeIn->GetEvent(ev);
@@ -96,7 +96,7 @@ void Smearing(const bool enableNoise = true, const int kMeanNoise = 3) {
         }
         
         if (enableNoise){
-            muNoise1 = gRandom->Poisson(kMeanNoise);
+            muNoise1 = gRandom->Poisson(kMeanNoise); // aggiunge un numero di punti di noise estratto da una distribuzione poissoniana
             noiseCountL1 += muNoise1;
             muNoise2 = gRandom->Poisson(kMeanNoise);
             noiseCountL2 += muNoise2;
@@ -111,7 +111,7 @@ void Smearing(const bool enableNoise = true, const int kMeanNoise = 3) {
         
 
         if (ev % 100 == 0 || ev == nEntries-1){
-            // ------------- PROGRESS BAR --------------
+            // ------------- PROGRESS BAR -------------- //
             float progress = (float) (ev+1.) / nEntries;
             
             
@@ -155,13 +155,13 @@ void PointSmearing(pHit* hit) {
 }
 
 void Noise(TClonesArray &hits, int muNoise, Layer lay, TString eventID) {
-    
+    // Genera muNoise punti di noise in modo casuale sul layer
     for (int i = 0; i<muNoise; i++) {
         double phi = gRandom->Uniform(0,2*acos(-1));
         double z = gRandom->Uniform(-135,135);
 
         int memPos = hits.GetEntriesFast();
-        new(hits[memPos]) pHit(z, phi, lay, -i, eventID);
+        new(hits[memPos]) pHit(z, phi, lay, -i, eventID); // aggiunge il punto di noise alla fine del TClonesArray di hit del layer
     }
 
 }

@@ -16,7 +16,7 @@ using std::to_string;
 const int nHist = 10;
 
 double* fitDoubleGauss(double* rs, TF1* dg, TH1D* h){ 
-    
+    // Fit con doppia gaussiana
     dg->SetParameters(h->GetMaximum(), 0.85, 0, 0.7*h->GetRMS(), 1.2*h->GetRMS());
     dg->SetParLimits(1, 0, 1);
     dg->SetParLimits(3, 0.02, 1);
@@ -61,7 +61,7 @@ void Efficiency(double *effic = nullptr, double *rms = nullptr) {
     const int multMin = 0;
     const int multMax = 70;
 
-    // funzione di fit
+    // Funzione di fit
     TF1* dg = new TF1("dg", "[0]*([1]*exp(-0.5*((x-[2])/[3])*((x-[2])/[3])) + (1-[1])*exp(-0.5*((x-[2])/[4])*((x-[2])/[4])))", -0.5, 0.5);
 
     // Creazione istogrammi
