@@ -10,7 +10,7 @@
 #include "TF1.h"
 #include "pPoint.h"
 
-const int kNoEvents = 100000; //Numero di eventi da simulare
+const int kNoEvents = 1000; //Numero di eventi da simulare
 const bool kFlagMS = true; //Flag per vedere se simulare o no il Multiple scattering 
 const bool kFlagUniform = false; //Flag per vedere se usare una distribuzione uniforme o no per la molteplicità
 
@@ -124,6 +124,10 @@ void Simulation() {
 
         tree -> Fill();
 
+        if (k > 0 && k % 500000 == 0) {
+            tree->AutoSave("SaveSelf");
+        }
+
         delete ev;
         ev = nullptr;
     }
@@ -188,8 +192,14 @@ void MultipleScattering(double *cd){
 
     // Generazione delle direzioni dopo lo scttaering multiplo
     double thplane = gRandom->Gaus(0,0.001);
-    double php = 2*acos(-1)*gRandom->Rndm();
-    double thp = thplane/sin(php);
+    double php;
+    if (thplane > 0){
+        php = acos(-1)*gRandom->Rndm();
+    } 
+    else{
+        php = acos(-1) + acos(-1)*gRandom->Rndm();
+    }
+    double thp = atan(tan(thplane)/sin(php));
     double cdp[3];
     cdp[0] = sin(thp)*cos(php);
     cdp[1] = sin(thp)*sin(php);

@@ -122,14 +122,16 @@ for (int i=0; i<n; i++){
   std::cout << std::endl; // Vai a capo alla fine
   std::cout << "Scan in " << varname << " completato." << std::endl;
 
-  gROOT->ProcessLine(Form("plottaRisultati(%d, (double*) %p, (double*) %p, \"%s (%s)\", \"Efficiency\", \"Eff. vs %s (smear only) - %s a %.2f %s\", \"Effvs%s\", false)", n, var, eff, varname, udm, varname, varname2, var2, udm2, varname));
-  gROOT->ProcessLine(Form("plottaRisultati(%d, (double*) %p, (double*) %p, \"%s (%s)\", \"Resolution (#mu m)\", \"Res. vs %s (smear only) - %s a %.2f %s\", \"Resvs%s\", false)", n, var, rms, varname, udm, varname, varname2, var2, udm2, varname));
+  gROOT->ProcessLine(Form("plottaRisultati(%d, (double*) %p, (double*) %p, \"%s (%s)\", \"Efficiency\", \"Eff. vs %s (smear+MS) - %s a %.2f %s\", \"Effvs%s\", false)", n, var, eff, varname, udm, varname, varname2, var2, udm2, varname));
+  gROOT->ProcessLine(Form("plottaRisultati(%d, (double*) %p, (double*) %p, \"%s (%s)\", \"Resolution (#mu m)\", \"Res. vs %s (smear+MS) - %s a %.2f %s\", \"Resvs%s\", false)", n, var, rms, varname, udm, varname, varname2, var2, udm2, varname));
+  gROOT->ProcessLine(Form("plottaRisultati(%d, (double*) %p, (double*) %p, \"%s (%s)\", \"Efficiency\", \"Eff. vs %s (smear+MS) - %s a %.2f %s\", \"Effvs%s\", true)", n, var, eff, varname, udm, varname, varname2, var2, udm2, varname));
+  gROOT->ProcessLine(Form("plottaRisultati(%d, (double*) %p, (double*) %p, \"%s (%s)\", \"Resolution (#mu m)\", \"Res. vs %s (smear+MS) - %s a %.2f %s\", \"Resvs%s\", true)", n, var, rms, varname, udm, varname, varname2, var2, udm2, varname));
 
 }
 
 void plottaRisultati(int n, double *x, double *y, const char *nameX, const char *nameY, const char *title, const char* imm, bool kLog = false)
 {
-    char titImm[100] = "./images/fine_scans/";
+    char titImm[100] = "./images/scans/";
     strcat(titImm, imm);
     if (kLog){
         strcat(titImm, "Log.jpg");
