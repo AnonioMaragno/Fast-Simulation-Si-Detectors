@@ -13,8 +13,6 @@
 #include "TCanvas.h"
 using std::to_string;
 
-const int nHist = 10;
-
 double* fitDoubleGauss(double* rs, TF1* dg, TH1D* h){ 
     
     dg->SetParameters(h->GetMaximum(), 0.85, 0, 0.7*h->GetRMS(), 1.2*h->GetRMS());
@@ -51,7 +49,7 @@ void Efficiency(double *effic = nullptr, double *rms = nullptr) {
     ntuple->SetBranchAddress("mult", &mult);
 
     // Creazione file output in cui salvare gli istogrammi
-    TFile fileOut("histograms.root", "RECREATE");
+    TFile fileOut("histograms4.root", "RECREATE");
 
     // Variabili ausiliarie
     const double zMin = -200;
@@ -131,6 +129,8 @@ void Efficiency(double *effic = nullptr, double *rms = nullptr) {
     char name[80];
     char title[100];
     
+    TF1* fG = new TF1("fG", "gaus(0)", -0.5, 0.5);
+
     for(int i=0; i<nM; i++) {
         sprintf(name, "hResMult%.0f", multis[i]);
         sprintf(title, "Residuals with multiplicity at %.1f +/- %.1f", multis[i], multRange[i]);
@@ -138,8 +138,7 @@ void Efficiency(double *effic = nullptr, double *rms = nullptr) {
         hResMult[i]->SetTitle(title);
 
         //fitDoubleGauss(res, dg, hResMult[i]);
-        TF1* fG = new TF1("fG", "gaus(0)", -0.5, 0.5);
-        hResMult[i] ->Fit(fG, "RQ+");
+        hResMult[i]->Fit(fG, "RQ+");
         
         resolutionMult[i] = fG -> GetParameter(2) * 1000; //in micron
         errResolutionMult[i] = fG -> GetParError(2) * 1000;
@@ -167,6 +166,9 @@ void Efficiency(double *effic = nullptr, double *rms = nullptr) {
             effMult[i] = 0;
             erreffMult[i] = 1. / (hResMult[i]->GetEntries());
         }
+
+        delete hResMult[i];
+        hResMult[i] = nullptr;
     }
 
     //TGraph *gEffMult = new TGraph(nM, multis, effMult);
@@ -190,6 +192,11 @@ void Efficiency(double *effic = nullptr, double *rms = nullptr) {
     gResMult->SetMarkerColor(kRed);
     gResMult->Draw("ALP");
     gResMult->Write("ResvsMult");
+
+    delete gEffMult;
+    gEffMult = nullptr;
+    delete gResMult;
+    gResMult = nullptr;
 
     // Efficienza vs zTrue
     // double nZTrue[] = {-175, -125, -75, -37.5, -12.5, 12.5, 37.5, 75, 125, 175};
@@ -229,6 +236,9 @@ void Efficiency(double *effic = nullptr, double *rms = nullptr) {
             erreffZTrue[i] = 1. /(hResZTrue[i]->GetEntries());
 
         } 
+
+        delete hResZTrue[i];
+        hResZTrue[i] = nullptr;
     }
 
     //TGraph *gResZTrue = new TGraph(nZ, nZTrue, resolutionZtrue);
@@ -255,6 +265,18 @@ void Efficiency(double *effic = nullptr, double *rms = nullptr) {
     gEffZTrue->Write("EffvsZTrue");
 
     c1->Close();
+
+    delete c1;
+    c1 = nullptr;
+    delete gResZTrue;
+    gResZTrue = nullptr;
+    delete gEffZTrue;
+    gEffZTrue = nullptr;
+    if (dg) { delete dg; dg = nullptr; }
+    if (fG) { delete fG; fG = nullptr; }
+    if (hRes) { delete hRes; hRes = nullptr; }
+    if (histo1) { delete histo1; histo1 = nullptr; }
+    if (histo2) { delete histo2; histo2 = nullptr; }
 
     fileIn.Close();
     fileOut.Close();

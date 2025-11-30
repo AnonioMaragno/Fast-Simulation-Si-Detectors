@@ -136,6 +136,11 @@ void Smearing(const bool enableNoise = true, const int kMeanNoise = 3) {
     cout << "PUNTI DI NOISE CREATI SU L2: " << noiseCountL2 << endl;
 
     hfile2.Write();
+
+    if (ptrHitsL1){ delete ptrHitsL1; ptrHitsL1 = nullptr;}
+    if (ptrHitsL2){ delete ptrHitsL2; ptrHitsL2 = nullptr;}
+    if (evIDptr){ delete evIDptr; evIDptr = nullptr;}
+
     hfile1.Close();
     hfile2.Close();
 

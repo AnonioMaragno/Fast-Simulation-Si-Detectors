@@ -19,7 +19,7 @@ const bool kProgress = true;
 double TrovaTracklet(pHit* h1, pHit* h2);
 void RunningWindow(TH1D* histo, double wSize, double &zRec, int &flag, bool kReverse = false);
 
-void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.1){
+void Reconstruction(const double kwSize = 2.3, const double kPhiWindow = 0.05){
 
     if (kProgress){
         cout << "----------------------------------" << endl;
@@ -130,14 +130,21 @@ void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.1){
             TLine* lzTrue = new TLine(zVertex, 0, zVertex, 1.1*histoTrack->GetMaximum());
             lzTrue->SetLineColor(kBlue);
             lzTrue->Draw("same");
+            TLine* lzRec = nullptr;
             if (flag){
-                TLine* lzRec = new TLine(zRec, 0, zRec, 1.1*histoTrack->GetMaximum());
+                lzRec = new TLine(zRec, 0, zRec, 1.1*histoTrack->GetMaximum());
                 lzRec->SetLineColor(kRed);
                 lzRec->Draw("same");
             }
             TString nomeFile = "./images/canvas_" + *evIDptr + ".jpg";
             c->SaveAs(nomeFile.Data());
 
+            delete lzTrue;
+            lzTrue = nullptr;
+            if (flag){
+                delete lzRec;
+                lzRec = nullptr;
+            }
         }
 
         if (flag) {
@@ -185,9 +192,13 @@ void Reconstruction(const double kwSize = 0.5, const double kPhiWindow = 0.1){
     c->Close();
     ntuple->Write();
 
+    if (c) { delete c; c = nullptr;}
+    if (ptrHitsL1){ delete ptrHitsL1; ptrHitsL1 = nullptr;}
+    if (ptrHitsL2){ delete ptrHitsL2; ptrHitsL2 = nullptr;}
+    if (evIDptr){ delete evIDptr; evIDptr = nullptr;}
+
     infile.Close();
     outfile.Close();
-
 }
 
 
