@@ -171,10 +171,11 @@ void ClearLines() {
 
 
 // Disegna un evento
-void DrawEvent(TTree* tree, TString eventID, TCanvas* cL, TCanvas* cF) {
+bool DrawEvent(TTree* tree, TString eventID, TCanvas* cL, TCanvas* cF) {
     ClearTracks();
     ClearLines();
 
+    bool evFound = true;
     static Layer layers[3] = {Layer::BP, Layer::L1, Layer::L2};
 
     // Dichiarazione oggetti in cui salvare dati dal tree in input
@@ -279,10 +280,13 @@ void DrawEvent(TTree* tree, TString eventID, TCanvas* cL, TCanvas* cF) {
 
     if (tracks.size() == 0){
         cout << "Evento non trovato" << endl;
+        evFound = false;
     }
 
     canvas->Modified();
     canvas->Update();
+
+    return evFound;
 }
 
 
@@ -319,12 +323,14 @@ void EventDisplay(TString ev = "e100", const char* filename = "treeSimulated.roo
         canvas->cd();
         geom->GetTopVolume()->Draw("ogl");
 
-        DrawEvent(tree, ev, cL, cF); // Disegna l'evento richiesto
-        cout << "Visualizing ev = " << ev << endl;
-        canvas->Update();
-        cF->Update();
-        cL->Update();
-        gPad->WaitPrimitive();
+        bool evFound = DrawEvent(tree, ev, cL, cF); // Disegna l'evento richiesto
+        if (evFound){
+            cout << "Visualizing ev = " << ev << endl;
+            canvas->Update();
+            cF->Update();
+            cL->Update();
+            gPad->WaitPrimitive();
+        }
 
         int num;
         cout << "Next event? (Insert number, if you want to stop type -1)" << endl;
