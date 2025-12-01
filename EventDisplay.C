@@ -18,10 +18,11 @@ TCanvas* canvas = nullptr;
 TTree* tree = nullptr;
 int currentEvent = 0;
 
-std::vector<TPolyLine3D*> tracks;
-std::vector<TLine*> linesF;
-std::vector<TLine*> linesL;
+std::vector<TPolyLine3D*> tracks;   // contenitore per le tracce 3D
+std::vector<TLine*> linesF;         // contenitore per le tracce 2D (vista frontale)
+std::vector<TLine*> linesL;         // contenitore per le tracce 2D (vista laterale)
 
+// Serve a disegnare la geometria dei rivelatori e della beampipe nelle viste 2D
 void DrawGeoProj(TCanvas* cL, TCanvas* cF){
     cF->cd();
 
@@ -81,7 +82,7 @@ void DrawGeoProj(TCanvas* cL, TCanvas* cF){
     
 }
 
-// Funzione per disegnare una traiettoria
+// Funzione per disegnare una traccia in 3D
 TPolyLine3D* CreateTrack(pPoint* pto0, pPoint* pto1) {
 
     TPolyLine3D* track = new TPolyLine3D(2);
@@ -92,8 +93,9 @@ TPolyLine3D* CreateTrack(pPoint* pto0, pPoint* pto1) {
     return track;
 }
 
+// Funzione per disegnare una traccia in 2D
 void CreateLines(pPoint* pto0, pPoint* pto1){
-    linesF.push_back(new TLine(pto0->GetX()/10, pto0->GetY()/10, pto1->GetX()/10, pto1->GetY()/10));
+    linesF.push_back(new TLine(pto0->GetX()/10, pto0->GetY()/10, pto1->GetX()/10, pto1->GetY()/10)); // conversione da mm a cm
     linesF.back()->SetLineColor(kGreen+2);
     linesF.back()->SetLineWidth(2);
 
@@ -102,6 +104,7 @@ void CreateLines(pPoint* pto0, pPoint* pto1){
     linesL.back()->SetLineWidth(2);
 }
 
+// Per poter visualizzare anche le tracce che escono dall'accettanza
 void allungaTrack(TPolyLine3D* prevTrack){
 
     float* pts = prevTrack->GetP();
@@ -120,7 +123,7 @@ void allungaTrack(TPolyLine3D* prevTrack){
 
 }
 
-// Costruisce i cilindri
+// Costruisce i cilindri dei rivelatori e della beam pipe
 void BuildGeometry() {
     TGeoMaterial* matVacuum = new TGeoMaterial("Vacuum", 0, 0, 0);
     TGeoMedium* vacuum = new TGeoMedium("Vacuum", 1, matVacuum);
@@ -149,7 +152,7 @@ void BuildGeometry() {
     geom->CloseGeometry();
 }
 
-// Pulisce le tracce disegnate
+// Pulisce le tracce disegnate in 3D
 void ClearTracks() {
     // for (auto* t : tracks) {
     //     t->Delete();
@@ -157,6 +160,7 @@ void ClearTracks() {
     tracks.clear();
 }
 
+// Pulisce le tracce disegnate in 2D
 void ClearLines() {
     // for (auto* l : linesF) {
     //     l->Delete();
@@ -232,6 +236,8 @@ bool DrawEvent(TTree* tree, TString eventID, TCanvas* cL, TCanvas* cF) {
 
                     hitFound = false;
                     
+                    // cerco la hit sul layer successivo che ha la particella con lo stesso ID
+
                     for (int k=0; k<ptrHits->GetEntriesFast(); k++){                        
                         
                         hit2 = (pHit*) ptrHits->At(k);
@@ -239,7 +245,7 @@ bool DrawEvent(TTree* tree, TString eventID, TCanvas* cL, TCanvas* cF) {
                         if (hit2->GetId().CompareTo(particleID) == 0){
                             TPolyLine3D* track = CreateTrack(hit1, hit2);
                             CreateLines(hit1,hit2);
-                            //track->Draw();
+                            
                             tracks.push_back(track);
                             hit1 = static_cast <pPoint*> (hit2);
                             hitFound = true;
@@ -302,6 +308,7 @@ void EventDisplay(TString ev = "e100", const char* filename = "treeSimulated.roo
         return;
     }
 
+    // canvas per le viste 2D
     TCanvas* cL = new TCanvas("cL", "Lateral view", 600, 500, 600, 400);
     TCanvas* cF = new TCanvas("cF", "Frontal view", 1200, 500, 600, 600);
 
@@ -315,6 +322,7 @@ void EventDisplay(TString ev = "e100", const char* filename = "treeSimulated.roo
     
     bool shouldDraw = true;
 
+    // Loop per poter disegnare più eventi uno dopo l'altro
     while(shouldDraw){
         canvas->Clear();
         cL->Clear();
