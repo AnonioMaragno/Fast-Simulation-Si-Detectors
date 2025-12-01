@@ -10,6 +10,7 @@ pHit::pHit(): pPoint(), fId(), fLayer(), fPhi()  {
 
 }
 
+// Standard constructor 1
 pHit::pHit(pPoint *pto, Layer layer, int numPart, TString evID): pPoint(*pto), fLayer(layer)
 {
     fId = evID + Form("-p%d", numPart);
@@ -21,6 +22,7 @@ pHit::pHit(pPoint *pto, Layer layer, int numPart, TString evID): pPoint(*pto), f
 
 }
 
+// Standard constructor 2
 pHit::pHit(double z, double phi, Layer layer, int numPart, TString evID): pPoint(), fLayer(layer), fPhi(phi)
 {
     fId = evID + Form("-p%d", numPart);
@@ -49,6 +51,7 @@ pHit::~pHit() {
 
 }
 
+// Setter
 void pHit::SetPhi(double phi)
 {
     if (phi > 2*acos(-1.)){
@@ -64,6 +67,7 @@ void pHit::SetPhi(double phi)
     SetY(r*sin(phi));
 }
 
+// Getter
 double pHit::GetR()
 {
     static double R = 0.0;

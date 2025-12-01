@@ -13,15 +13,17 @@ using namespace std;
 class pEvent : public TObject {
 
 	public:
+
+		// Costruttori e distruttore
 		pEvent();//default constructor
 		pEvent(pPoint *vert, int mult, int eventCounter);//standard constructor
 		virtual ~pEvent();//destructor
 		
-		//setter
+		// Setter
 		void SetMultiplicity(int mult) { fM = mult;};
 		void SetVertex(pPoint* punto) { fVertex = punto;};
 
-		//getter
+		// Getter
 		TString GetEventID() const { return feventID;}
 		int GetMultiplicity() const { return fM; };
 		pPoint* GetVertex() const { return fVertex; };
@@ -31,11 +33,11 @@ class pEvent : public TObject {
 		static TClonesArray* GetPtrHitsL1() { return fHitsL1; };
 		static TClonesArray* GetPtrHitsL2() { return fHitsL2; };
 
-		//funzione di trasporto
+		// Funzione di trasporto
 		bool Trasporto(pPoint* pIniz, double* c, Layer lay, int index);
 
 		
-		//funzione di cleaning
+		// Funzione di cleaning
 		static void disallocateMemory(){
 			delete fHitsBP;
 			fHitsBP = nullptr;
@@ -45,20 +47,20 @@ class pEvent : public TObject {
 			fHitsL2 = nullptr;
 		};
 
-		// ASSIGNEMENT OPERATOR E COPY MESSI = delete COSÌ NON LI COSTRUISCE IL COMPILER
+		// ASSIGNEMENT OPERATOR e COPY CONSTRUCTOR MESSI = delete COSÌ NON LI COSTRUISCE IL COMPILER
 		// NON VOGLIO COPIE DEL MIO EVENTO (metodo C++11)
 		void operator=(const pEvent& source) = delete;//assignment operator
 		pEvent(const pEvent& source) = delete;//copy constructor
 
 
 	private:
-		// data members
 		
-		int fM;// Molteplicità di particelle
-		pPoint* fVertex;// Puntatore al vertice
-		TString feventID; //ID dell'evento
+		// Data members
+		int fM;				// Molteplicità di particelle
+		pPoint* fVertex;	// Puntatore al vertice
+		TString feventID; 	//ID dell'evento
 
-		//array che conterranno le hits
+		// Array che conterranno le hits
 		static TClonesArray *fHitsBP; //->
 		static TClonesArray *fHitsL1; //-> 
 		static TClonesArray *fHitsL2; //-> 

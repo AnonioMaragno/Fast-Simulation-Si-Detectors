@@ -9,7 +9,7 @@ TClonesArray* pEvent::fHitsL2 = new TClonesArray("pHit", 100);
 
 
 // Default Constructor
-// metto molteplicità a zero, vertice a (0,0,0) 
+// metto molteplicità a 0, vertice a (0,0,0) 
 pEvent::pEvent(): TObject(),
 fM(0){
     pPoint *pto = new pPoint();
@@ -27,10 +27,10 @@ fM(mult){
 }
 
 
-// distruttore
+// Destructor
 pEvent::~pEvent()
 {    
-    //libera memoria
+    // libera memoria
     delete fVertex;
     fVertex = nullptr;
     fHitsBP->Clear();
@@ -39,15 +39,15 @@ pEvent::~pEvent()
 }
 
 
-// Trasporto della particella da un punto iniziale ad un layer (c -> coseni direttori)
+// Trasporto della particella da un punto iniziale ad un layer (c -> coseni direttori, lay -> layer di partenza, numParticle -> n-esima particella dell'evento)
 bool pEvent::Trasporto(pPoint* pIniz, double* c, Layer lay, int numParticle)
 {
     
-    bool successFlag = true;
+    bool successFlag = true; // tiene conto del successo o meno del trasporto
 
-    static double t, x0, y0, z0, x, y, z, R, delta, b, sqs;
-    //delta, b e sqs servono come variabili ausiliare per snellire la scrittura
+    static double t, x0, y0, z0, x, y, z, R, delta, b, sqs; // delta, b e sqs servono come variabili ausiliari per snellire la scrittura
     
+    // Prendo le coordinate iniziali
     x0 = pIniz->GetX();
     y0 = pIniz->GetY();
     z0 = pIniz->GetZ();
@@ -69,20 +69,20 @@ bool pEvent::Trasporto(pPoint* pIniz, double* c, Layer lay, int numParticle)
 
  
     TClonesArray &hits = *ptrhits;
-    int memPosition = ptrhits->GetEntriesFast(); //trova il numero di elementi già salvati e usa questo numero per aggiungere un elemento alla fine del TClonesArray
+    int memPosition = ptrhits->GetEntriesFast(); // trova il numero di elementi già salvati e usa questo numero per aggiungere un elemento alla fine del TClonesArray
 
-    // calcolo di t
+    // Calcolo di t
     b = x0*c[0] + y0*c[1];
     sqs = c[0]*c[0] + c[1]*c[1];
     delta = b*b - sqs * ( x0*x0 + y0*y0 - R*R );
     t = (-b+sqrt(delta))/sqs;
 
-    //calcolo di x, y, z finali
+    // Calcolo di x, y, z finali
     x = x0 + c[0]*t;
     y = y0 + c[1]*t;
     z = z0 + c[2]*t;
 
-    //creo la hit se rispetto la condizione di essere nel rivelatore
+    // Creo la hit se rispetto la condizione di essere nel rivelatore
     if ( lay == Layer::BP ){
         pIniz->SetCoord(x,y,z);
         new (hits[memPosition]) pHit(pIniz,lay,numParticle,feventID);   
