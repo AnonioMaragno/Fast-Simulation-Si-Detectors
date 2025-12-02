@@ -123,7 +123,7 @@ void Efficiency(double *effic = nullptr, double *rms = nullptr) {
     double multis[] = {3, 4, 5, 7, 10, 13, 19, 28, 37, 46, 55, 64};
     double multRange[] = {0.5, 0.5, 0.5, 1.5, 1.5, 1.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5};
 
-    int nM = std::size(multis);
+    const int nM = std::size(multis);
     TH1D *hResMult[nM];
     double resolutionMult[nM];
     double errResolutionMult[nM];
@@ -204,7 +204,7 @@ void Efficiency(double *effic = nullptr, double *rms = nullptr) {
     // double zRange[] = {  25,   25,  25,  12.5,  12.5, 12.5, 12.5, 25,  25,  25};
      double nZTrue[] = {-150, -75, -37.5, -12.5, 12.5, 37.5, 75, 150};
     double zRange[] =  {  50,  25,  12.5,  12.5, 12.5, 12.5, 25,  50};
-    int nZ = std::size(nZTrue);
+    const int nZ = std::size(nZTrue);
 
     TH1D *hResZTrue[nZ];
     double resolutionZtrue[nZ];

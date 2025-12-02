@@ -75,7 +75,7 @@ void scanProcess(int n, double* var, double var2, double *eff, double *rms, cons
 
 }
 
-void plottaRisultati(int n, double *x, double *y, const char *nameX, const char *nameY, const char *title, const char* imm, bool kLog = false)
+void plottaRisultati(const int n, double *x, double *y, const char *nameX, const char *nameY, const char *title, const char* imm, bool kLog = false)
 {
     char titImm[100] = "./images/scans/";
     strcat(titImm, imm);
@@ -92,10 +92,9 @@ void plottaRisultati(int n, double *x, double *y, const char *nameX, const char 
     if (kLog){
         c->SetLogx();
     }
-    
 
-    double errx[n];
-    double erry[n];
+    std::vector<double> errx(n);
+    std::vector<double> erry(n);
 
     if (strcmp(nameY, "Efficiency") == 0){ //eff. case
         for (int i=0; i<n; i++){
@@ -110,7 +109,7 @@ void plottaRisultati(int n, double *x, double *y, const char *nameX, const char 
         }
     }
 
-    TGraphErrors *g = new TGraphErrors(n, x, y, errx, erry);
+    TGraphErrors *g = new TGraphErrors(n, x, y, errx.data(), erry.data());
     g->SetTitle(title);
     g->GetXaxis()->SetTitle(nameX);
     g->GetYaxis()->SetTitle(nameY);
@@ -127,4 +126,5 @@ void plottaRisultati(int n, double *x, double *y, const char *nameX, const char 
     c->SaveAs(titImm);
 
     c->Close();
+    delete c;
 }
