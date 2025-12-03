@@ -133,8 +133,8 @@ void Efficiency(double *effic = nullptr, double *rms = nullptr) {
     TF1* fG = new TF1("fG", "gaus(0)", -0.5, 0.5);
 
     for(int i=0; i<nM; i++) {
-        sprintf(name, "hResMult%.0f", multis[i]);
-        sprintf(title, "Residuals with multiplicity at %.1f +/- %.1f", multis[i], multRange[i]);
+        snprintf(name, 80,"hResMult%.0f", multis[i]);
+        snprintf(title,100, "Residuals with multiplicity at %.1f +/- %.1f", multis[i], multRange[i]);
         hResMult[i] = histo1->ProjectionY(name, histo1->GetXaxis()->FindBin(multis[i]-multRange[i]+0.001), histo1->GetXaxis()->FindBin(multis[i]+multRange[i]-0.001));
         hResMult[i]->SetTitle(title);
 
@@ -211,8 +211,8 @@ void Efficiency(double *effic = nullptr, double *rms = nullptr) {
     double errResolutionZtrue[nZ];
     double res[2];
     for(int i=0; i<nZ; i++) {
-        sprintf(name, "hResZTrue%.0f", nZTrue[i]);
-        sprintf(title, "Residuals with vertex at %.1f +/- %.1f", nZTrue[i], zRange[i]);
+        snprintf(name, 80,"hResZTrue%.0f", nZTrue[i]);
+        snprintf(title,100, "Residuals with vertex at %.1f +/- %.1f", nZTrue[i], zRange[i]);
         hResZTrue[i] = histo2->ProjectionY(name, histo2->GetXaxis()->FindBin(nZTrue[i]-zRange[i]+0.001), histo2->GetXaxis()->FindBin(nZTrue[i]+zRange[i]-0.001));
         hResZTrue[i]->SetTitle(title);
         fitDoubleGauss(res, dg, hResZTrue[i]);

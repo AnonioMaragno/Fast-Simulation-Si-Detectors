@@ -10,7 +10,7 @@
 
 using std::string;
 
-// const int kMeanNoise = 5;
+const bool kProgress = true;
 
 void PointSmearing(pHit* hit);
 void Noise(TClonesArray &hits, int muNoise, Layer lay, TString eventID);
@@ -71,9 +71,11 @@ void Smearing(const bool enableNoise = true, const int kMeanNoise = 3) {
     // Progress bar
     int barWidth = 70;
 
-    std::cout << "[";
-    for (int j = 0; j < barWidth; ++j) { std::cout << " ";}
-    std::cout << "] 0 %\r" << std::flush;
+    if (kProgress){
+        std::cout << "[";
+        for (int j = 0; j < barWidth; ++j) { std::cout << " ";}
+        std::cout << "] 0 %\r" << std::flush;
+    }
 
     int nEntries = treeIn->GetEntries();
 
@@ -110,7 +112,7 @@ void Smearing(const bool enableNoise = true, const int kMeanNoise = 3) {
         }
         
 
-        if (ev % 100 == 0 || ev == nEntries-1){
+        if (kProgress && (ev % 100 == 0 || ev == nEntries-1)){
             // ------------- PROGRESS BAR -------------- //
             float progress = (float) (ev+1.) / nEntries;
             

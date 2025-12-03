@@ -14,6 +14,7 @@
 const int kNoEvents = 1000;         // Numero di eventi da simulare
 const bool kFlagMS = true;          // Flag per vedere se simulare o no il Multiple scattering 
 const bool kFlagUniform = false;    // Flag per vedere se usare una distribuzione uniforme o no per la molteplicità
+const bool kProgress = true;
 
 void generaVertice(pPoint* vtx);
 void generaDirezione(TH1F* etaDist, double *cosDir);
@@ -76,9 +77,12 @@ void Simulation() {
     // Implementazione di una barra di progresso
     int barWidth = 70;
 
-    std::cout << "[";
-    for (int j = 0; j < barWidth; ++j) { std::cout << " ";}
-    std::cout << "] 0 %\r" << std::flush;
+    if (kProgress){
+        std::cout << "[";
+        for (int j = 0; j < barWidth; ++j) { std::cout << " ";}
+        std::cout << "] 0 %\r" << std::flush;
+    }
+    
 
     for (int k=0; k<kNoEvents; k++){
 
@@ -105,7 +109,7 @@ void Simulation() {
             }
         }
 
-        if ( k % 100 == 0 || k == kNoEvents-1){
+        if (kProgress && (k % 100 == 0 || k == kNoEvents-1)){
             // ------------- PROGRESS BAR -------------- //
             float progress = (float) (k+1.) / kNoEvents;
             
